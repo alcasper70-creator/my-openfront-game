@@ -208,7 +208,13 @@ export class WorkerLobbyService {
         numClients: gi.clients?.length ?? 0,
         startsAt: gi.startsAt,
         gameConfig: gi.gameConfig && publicLobbyGameConfig(gi.gameConfig),
-        publicGameType: g.isQueued() ? "special" : "hosted",
+        // Operations is a real public special mode, not merely a host-lobby
+        // preference. Put listed Operations lobbies in the Special slot even
+        // when the independent deployment has no paid queue enabled.
+        publicGameType:
+          g.isQueued() || gi.gameConfig?.operationsMode === true
+            ? "special"
+            : "hosted",
         queuedAt: g.queuedAt(),
         creatorID: g.hashedCreatorID(),
         createdAt: g.createdAt,

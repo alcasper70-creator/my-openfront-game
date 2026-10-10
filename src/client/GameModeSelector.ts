@@ -1064,8 +1064,11 @@ export class GameModeSelector extends LitElement {
     );
   }
 
-  private getLobbyTitle(lobby: PublicGameInfo): string {
+  private getLobbyTitle(lobby: PublicGameInfo): string | TemplateResult {
     const config = lobby.gameConfig!;
+    if (config?.operationsMode === true) {
+      return html`<span class="inline-flex items-center gap-2">FRONTLINE OPERATIONS <span class="rounded bg-red-500 px-1.5 py-0.5 text-[9px] font-black tracking-widest text-white">NEW</span></span>`;
+    }
     if (config.gameMode === GameMode.FFA) {
       return translateText("game_mode.ffa");
     }
