@@ -13,7 +13,11 @@ import {
 import { closeMobileSidebar } from "../Navigation";
 import { levelFraction } from "../Progression";
 import { steamSDK } from "../SteamSDK";
-import { firebaseObserveUser, type FirebaseUser } from "../Firebase";
+import {
+  firebaseObserveUser,
+  firebaseSignOut,
+  type FirebaseUser,
+} from "../Firebase";
 import { playerProfileUrl } from "../utilities/PlayerProfileUrl";
 import { copyToClipboard, showToast, translateText } from "../Utils";
 import "./LevelBadge";
@@ -319,6 +323,12 @@ export class NavAccountMenu extends LitElement {
     window.location.reload();
   }
 
+  private async handleFirebaseLogout(): Promise<void> {
+    await firebaseSignOut();
+    this.menuOpen = false;
+    window.location.reload();
+  }
+
   private selectItem(item: MenuItem): void {
     this.menuOpen = false;
     closeMobileSidebar();
@@ -336,6 +346,17 @@ export class NavAccountMenu extends LitElement {
   }
 
   private renderMenu(): TemplateResult {
+    if (this.firebaseUser !== null) {
+      const name = this.firebaseUser.displayName ?? "Commander";
+      return html`<div class="w-72 rounded-xl border border-cyan-300/20 bg-zinc-900 shadow-xl overflow-hidden">
+        <div class="border-b border-white/10 bg-cyan-300/5 px-4 py-3">
+          <div class="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200">Firebase commander</div>
+          <div class="mt-1 truncate font-bold text-white">${name}</div>
+        </div>
+        <button @click=${() => { this.menuOpen = false; window.showPage?.("page-account"); }} class="w-full px-4 py-3 text-left text-sm font-medium text-white/80 hover:bg-white/10">Commander profile</button>
+        <button @click=${() => void this.handleFirebaseLogout()} class="w-full border-t border-white/10 px-4 py-3 text-left text-sm font-medium text-red-300 hover:bg-red-500/10">Sign out</button>
+      </div>`;
+    }
     return html`
       <!-- No vertical padding on the panel: items run edge to edge so a hovered
            row (the red Log out especially) fills the corner instead of leaving
