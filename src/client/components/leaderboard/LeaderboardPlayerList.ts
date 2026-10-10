@@ -6,6 +6,7 @@ import {
 import { html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 import { fetchPlayerLeaderboard, getUserMe } from "../../Api";
+import { firebaseLeaderboard } from "../../Firebase";
 import { loadModal } from "../../LazyModals";
 import { translateText } from "../../Utils";
 import "../PlayerName";
@@ -126,7 +127,27 @@ export class LeaderboardPlayerList extends LitElement {
       const result = await fetchPlayerLeaderboard(this.currentPage);
 
       if (result === false) {
-        throw new Error("Failed to load player leaderboard");
+        // The independent deployment has no upstream ranked API. Fall back to
+        // the Firebase commander board, populated when a player signs in.
+        const cloudEntries = await firebaseLeaderboard();
+        const entries: PlayerLeaderboardEntry[] = cloudEntries.map(
+          (entry, index) => ({
+            rank: index + 1,
+            playerId: entry.id,
+            accountUsername: entry.name,
+            elo: entry.score,
+            games: entry.games,
+            wins: entry.wins,
+            losses: Math.max(0, entry.games - entry.wins),
+            winRate: entry.games > 0 ? entry.wins / entry.games : 0,
+          }),
+        );
+        this.ladders = {
+          [RankedType.OneVOne]: { entries, userEntry: null, hasMore: false },
+          [RankedType.TwoVTwo]: { entries, userEntry: null, hasMore: false },
+        };
+        this.hasLoadedPlayers = true;
+        return;
       }
 
       // Past the last page. Not an error: stop paging, leave the footer clear.

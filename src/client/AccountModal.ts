@@ -42,6 +42,7 @@ import { modalHeader } from "./components/ui/ModalHeader";
 import { steamGlyph, steamLinkButton } from "./components/ui/SteamLinkButton";
 import { crazyGamesSDK, type CrazyGamesUser } from "./CrazyGamesSDK";
 import { desktopLinkGate, isDesktopShell } from "./DesktopShell";
+import { firebaseGoogleSignIn, firebaseSignOut } from "./Firebase";
 import "./GameStatsModal";
 import { showInGameAlert } from "./InGameModal";
 import { consumeLinkResult } from "./LinkResult";
@@ -82,6 +83,8 @@ export class AccountModal extends BaseModal {
   protected routerName = "account";
 
   @state() private email: string = "";
+  @state() private firebaseName: string | null = localStorage.getItem("firebase_commander_name");
+  @state() private firebaseSigningIn = false;
   @state() private isLoadingUser: boolean = false;
   // Counts openings, to key the profile card's once-per-open flourish.
   private openCount = 0;
@@ -831,13 +834,12 @@ export class AccountModal extends BaseModal {
         <div class="flex items-center justify-center p-6 min-h-full">
           <div class="w-full max-w-md bg-white/5 rounded-2xl border border-cyan-300/30 p-8 text-center">
             <div class="text-4xl mb-4">⚡</div>
-            <h2 class="text-xl font-black tracking-wide text-cyan-200">GUEST COMMANDER</h2>
+            <h2 class="text-xl font-black tracking-wide text-cyan-200">${this.firebaseName ? "GOOGLE COMMANDER" : "GUEST COMMANDER"}</h2>
             <p class="mt-3 text-sm text-white/65">
-              Frontline Frenzy is playable without an account. Your commander name and private-lobby access are stored in this browser.
+              ${this.firebaseName ? `Signed in as ${this.firebaseName}. Your commander profile is now on the Frontline Frenzy leaderboard.` : "Frontline Frenzy is playable without an account. Sign in with Google to create a commander profile for the leaderboard."}
             </p>
-            <p class="mt-3 text-xs text-white/40">
-              Google sign-in, cloud profiles, and ranked seasons are being rebuilt for this self-hosted edition.
-            </p>
+            ${this.firebaseName ? html`<button class="mt-5 rounded-lg border border-white/20 px-4 py-2 text-xs font-bold uppercase hover:bg-white/10" @click=${this.handleFirebaseLogout}>Sign out</button>` : html`<button ?disabled=${this.firebaseSigningIn} class="mt-5 rounded-lg bg-white px-4 py-2 text-xs font-bold uppercase text-slate-900 disabled:opacity-50" @click=${this.handleFirebaseGoogleLogin}>${this.firebaseSigningIn ? "Connecting…" : "Continue with Google"}</button>`}
+            <p class="mt-3 text-xs text-white/40">Private-lobby access still works without an account.</p>
           </div>
         </div>
       `;
@@ -1016,6 +1018,26 @@ export class AccountModal extends BaseModal {
   private handleGoogleLogin() {
     googleLogin();
   }
+
+  private handleFirebaseGoogleLogin = async (): Promise<void> => {
+    this.firebaseSigningIn = true;
+    try {
+      const user = await firebaseGoogleSignIn();
+      this.firebaseName = user.displayName || "Commander";
+      localStorage.setItem("firebase_commander_name", this.firebaseName);
+    } catch (error) {
+      console.warn("Firebase Google sign-in failed", error);
+      await showInGameAlert("Google sign-in is not enabled yet. Enable Google in Firebase Authentication and add this site's domain to Authorized domains.");
+    } finally {
+      this.firebaseSigningIn = false;
+    }
+  };
+
+  private handleFirebaseLogout = async (): Promise<void> => {
+    await firebaseSignOut();
+    this.firebaseName = null;
+    localStorage.removeItem("firebase_commander_name");
+  };
 
   private handleSteamLogin() {
     steamLogin();
