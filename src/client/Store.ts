@@ -56,6 +56,49 @@ type StoreTab =
 const COSMETICS_SUB_TABS = ["patterns", "flags", "crowns"] as const;
 type CosmeticsSubTab = (typeof COSMETICS_SUB_TABS)[number];
 
+type FrontlineCatalogItem = {
+  key: string;
+  name: string;
+  category: string;
+  icon: string;
+  cost: number;
+  description: string;
+};
+
+// The independent deployment has no payment processor. These are earnable
+// Field Credits stored in the browser until the server-side progression
+// service is enabled. Keeping the catalog here makes Store and Loadout useful
+// now, without pretending a third-party checkout exists.
+const FRONTLINE_CATALOG: readonly FrontlineCatalogItem[] = [
+  { key: "skin:iron-camo", name: "Iron Camo", category: "Skin", icon: "▦", cost: 350, description: "Steel-blue territory pattern." },
+  { key: "skin:ember", name: "Ember Front", category: "Skin", icon: "▧", cost: 500, description: "Warm tactical territory pattern." },
+  { key: "effect:trail", name: "Shockwave Trail", category: "Effect", icon: "✦", cost: 600, description: "A bright trail for your advances." },
+  { key: "effect:signal", name: "Command Signal", category: "Effect", icon: "⌁", cost: 450, description: "A pulse effect around captured ground." },
+  { key: "crown:field-marshal", name: "Field Marshal Crown", category: "Crown", icon: "♛", cost: 1200, description: "A commander crown for your profile." },
+  { key: "title:breaker", name: "Border Breaker", category: "Title", icon: "★", cost: 700, description: "A title for fearless commanders." },
+  { key: "banner:nightwatch", name: "Nightwatch Banner", category: "Banner", icon: "⚑", cost: 550, description: "A banner for your lobby profile." },
+  { key: "terrain:arctic", name: "Arctic Grid", category: "Terrain", icon: "❄", cost: 900, description: "An icy terrain theme for your map." },
+];
+const FRONTLINE_CREDITS_KEY = "frontline_field_credits";
+const FRONTLINE_OWNED_KEY = "frontline_owned_catalog";
+const FRONTLINE_CATALOG_CHANGED = "frontline-catalog-changed";
+
+function frontlineCredits(): number {
+  const stored = Number(localStorage.getItem(FRONTLINE_CREDITS_KEY));
+  if (Number.isFinite(stored) && stored >= 0) return stored;
+  localStorage.setItem(FRONTLINE_CREDITS_KEY, "2500");
+  return 2500;
+}
+
+function frontlineOwned(): string[] {
+  try {
+    const stored = JSON.parse(localStorage.getItem(FRONTLINE_OWNED_KEY) ?? "[]");
+    return Array.isArray(stored) ? stored.filter((key): key is string => typeof key === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
 /** Sub-tab holding the catalog item a store deep link points at. */
 export function subTabForItem(itemKey: string): CosmeticsSubTab {
   if (itemKey.startsWith("crown:")) return "crowns";
@@ -97,6 +140,8 @@ export class StoreModal extends BaseModal {
   /** The bundle whose contents dialog is open, if any. */
   private openedPack: ResolvedCosmetic | null = null;
   private readonly pages = new ProgressiveList(this);
+  @state() private frontlineCredits = 0;
+  @state() private frontlineOwned: string[] = [];
 
   protected modalConfig() {
     if (ClientEnv.env() === GameEnv.Dev) {
@@ -120,6 +165,7 @@ export class StoreModal extends BaseModal {
 
   connectedCallback() {
     super.connectedCallback();
+    this.refreshFrontlineCatalog();
     document.addEventListener("userMeResponse", this.onUserMeEvent);
     // The store loads on demand, usually after Main's broadcast went out.
     const last = lastUserMeResponse();
@@ -130,6 +176,22 @@ export class StoreModal extends BaseModal {
       this.rowObserver ??= new ResizeObserver(() => alignPurchaseRows(this));
       this.rowObserver.observe(this);
     }
+  }
+
+  private refreshFrontlineCatalog(): void {
+    this.frontlineCredits = frontlineCredits();
+    this.frontlineOwned = frontlineOwned();
+  }
+
+  private buyFrontlineItem(item: FrontlineCatalogItem): void {
+    if (this.frontlineOwned.includes(item.key) || this.frontlineCredits < item.cost) return;
+    const owned = [...this.frontlineOwned, item.key];
+    const credits = this.frontlineCredits - item.cost;
+    localStorage.setItem(FRONTLINE_OWNED_KEY, JSON.stringify(owned));
+    localStorage.setItem(FRONTLINE_CREDITS_KEY, String(credits));
+    this.frontlineOwned = owned;
+    this.frontlineCredits = credits;
+    window.dispatchEvent(new Event(FRONTLINE_CATALOG_CHANGED));
   }
 
   disconnectedCallback() {
@@ -651,8 +713,22 @@ export class StoreModal extends BaseModal {
 
   protected renderBody(key: string): TemplateResult {
     if (ClientEnv.env() === GameEnv.Dev) {
-      const doctrine = localStorage.getItem("frontline_doctrine") ?? "none";
-      return html`<div class="p-6 max-w-4xl mx-auto text-center"><p class="text-white/60 mb-6">Choose your free battle doctrine. Paid items are not enabled.</p><div class="grid gap-4 sm:grid-cols-3">${[["⚔️","INFANTRY SURGE","Fast captures and city pushes."],["🛡️","IRON TANKS","Heavy armor for fortified borders."],["✈️","SKY RAIDERS","Air support for rapid strikes."]].map(([icon,title,description]) => html`<button class="rounded-2xl border border-cyan-300/25 bg-cyan-300/5 p-5 text-left transition hover:bg-cyan-300/10" @click=${() => { localStorage.setItem("frontline_doctrine", title); this.requestUpdate(); }}><div class="text-4xl">${icon}</div><div class="mt-3 font-black tracking-wide text-cyan-200">${title}</div><p class="mt-2 text-sm text-white/60">${description}</p></button>`)}</div><p class="mt-6 text-xs text-white/40">Selected doctrine: ${doctrine}. Gameplay bonuses come after secure server-side match scoring.</p></div>`;
+      return html`<div class="mx-auto max-w-6xl p-5 sm:p-7">
+        <div class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-cyan-300/25 bg-cyan-300/10 p-4">
+          <div><div class="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Frontline Quartermaster</div><div class="mt-1 text-sm text-white/60">Buy cosmetics with Field Credits, then equip them in Loadout.</div></div>
+          <div class="rounded-xl bg-slate-950 px-4 py-2 text-lg font-black text-amber-300">◈ ${this.frontlineCredits.toLocaleString()} <span class="text-xs tracking-wider text-white/55">FIELD CREDITS</span></div>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">${FRONTLINE_CATALOG.map((item) => {
+          const owned = this.frontlineOwned.includes(item.key);
+          const affordable = this.frontlineCredits >= item.cost;
+          return html`<article class="rounded-2xl border ${owned ? "border-emerald-300/45 bg-emerald-400/10" : "border-cyan-300/25 bg-slate-950/70"} p-4">
+            <div class="flex items-start justify-between"><span class="text-3xl text-cyan-100">${item.icon}</span><span class="rounded bg-white/10 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-white/60">${item.category}</span></div>
+            <h3 class="mt-4 font-black uppercase tracking-wide text-white">${item.name}</h3><p class="mt-2 min-h-10 text-sm text-white/55">${item.description}</p>
+            <button class="mt-4 w-full rounded-lg px-3 py-2 text-xs font-black uppercase tracking-wider ${owned ? "bg-emerald-400/20 text-emerald-200" : affordable ? "bg-cyan-300 text-slate-950 hover:bg-cyan-200" : "cursor-not-allowed bg-white/10 text-white/35"}" ?disabled=${owned || !affordable} @click=${() => this.buyFrontlineItem(item)}>${owned ? "Owned" : `${item.cost} credits`}</button>
+          </article>`;
+        })}</div>
+        <p class="mt-5 text-center text-xs text-white/40">Field Credits and items are saved in this browser. Server-backed account progression can replace this safely later.</p>
+      </div>`;
     }
     if (this.affiliateCode) {
       return this.renderAffiliateGrid();

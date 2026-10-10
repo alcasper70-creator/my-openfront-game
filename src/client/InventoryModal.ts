@@ -679,8 +679,28 @@ export class InventoryModal extends BaseModal {
 
   protected renderBody(tab: string) {
     if (ClientEnv.env() === GameEnv.Dev) {
-      const doctrine = localStorage.getItem("frontline_doctrine") ?? "No doctrine selected";
-      return html`<div class="p-6 max-w-2xl mx-auto"><div class="rounded-2xl border border-cyan-300/25 bg-cyan-300/5 p-6 text-center"><div class="text-4xl">🎒</div><h2 class="mt-3 text-lg font-black tracking-widest text-cyan-200">ACTIVE LOADOUT</h2><p class="mt-4 text-xl font-bold text-white">${doctrine}</p><p class="mt-3 text-sm text-white/60">Your doctrine is saved on this device and ready for the next balance update. Cosmetic patterns and paid inventory are intentionally disabled while this independent edition uses free loadouts.</p><button class="mt-6 rounded-lg bg-cyan-300 px-5 py-3 text-sm font-black uppercase tracking-wide text-slate-950 hover:bg-cyan-200" @click=${() => { this.close(); window.location.hash = "modal=store"; }}>Choose doctrine</button></div><div class="mt-5 grid gap-3 sm:grid-cols-3 text-center text-sm"><div class="rounded-xl bg-white/5 p-4">⚔️<br/><b>Infantry</b><br/><span class="text-white/50">capture focus</span></div><div class="rounded-xl bg-white/5 p-4">🛡️<br/><b>Tanks</b><br/><span class="text-white/50">armor focus</span></div><div class="rounded-xl bg-white/5 p-4">✈️<br/><b>Aircraft</b><br/><span class="text-white/50">air-strike focus</span></div></div></div>`;
+      const doctrine = localStorage.getItem("frontline_doctrine") ?? "Infantry Command";
+      const catalog = [
+        ["skin:iron-camo", "▦", "Iron Camo", "Skin"], ["skin:ember", "▧", "Ember Front", "Skin"],
+        ["effect:trail", "✦", "Shockwave Trail", "Effect"], ["effect:signal", "⌁", "Command Signal", "Effect"],
+        ["crown:field-marshal", "♛", "Field Marshal Crown", "Crown"], ["title:breaker", "★", "Border Breaker", "Title"],
+        ["banner:nightwatch", "⚑", "Nightwatch Banner", "Banner"], ["terrain:arctic", "❄", "Arctic Grid", "Terrain"],
+      ] as const;
+      let owned: string[] = [];
+      let equipped: Record<string, string> = {};
+      try { owned = JSON.parse(localStorage.getItem("frontline_owned_catalog") ?? "[]"); } catch { /* empty inventory */ }
+      try { equipped = JSON.parse(localStorage.getItem("frontline_equipped_catalog") ?? "{}"); } catch { /* empty loadout */ }
+      const equip = (key: string, category: string) => {
+        localStorage.setItem("frontline_equipped_catalog", JSON.stringify({ ...equipped, [category]: key }));
+        this.requestUpdate();
+      };
+      const doctrines = [["⚔", "Infantry Command", "Fast pushes and safe captures."], ["▣", "Armored Command", "Supports Tank Battalion upgrades."], ["✈", "Air Command", "Supports Air Wing upgrades."], ["◈", "Operations Command", "Economy and infrastructure focus."]] as const;
+      return html`<div class="mx-auto max-w-6xl p-5 sm:p-7">
+        <section class="rounded-2xl border border-cyan-300/25 bg-cyan-300/10 p-5"><div class="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Active doctrine</div><div class="mt-2 text-2xl font-black text-white">${doctrine}</div><p class="mt-2 text-sm text-white/60">Choose a command doctrine and equip cosmetics you own. Loadout choices are saved in this browser.</p></section>
+        <h2 class="mt-7 text-sm font-black uppercase tracking-[0.18em] text-white/70">Battle doctrine</h2><div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">${doctrines.map(([icon, name, description]) => html`<button class="rounded-xl border p-4 text-left ${doctrine === name ? "border-cyan-300 bg-cyan-300/15" : "border-white/10 bg-slate-950/70 hover:border-cyan-300/40"}" @click=${() => { localStorage.setItem("frontline_doctrine", name); this.requestUpdate(); }}><span class="text-2xl text-cyan-200">${icon}</span><div class="mt-3 font-black text-white">${name}</div><div class="mt-1 text-xs text-white/55">${description}</div></button>`)}</div>
+        <div class="mt-8 flex items-center justify-between gap-3"><h2 class="text-sm font-black uppercase tracking-[0.18em] text-white/70">Owned cosmetics</h2><button class="rounded-lg bg-cyan-300 px-4 py-2 text-xs font-black uppercase tracking-wider text-slate-950" @click=${() => { this.close(); window.location.hash = "modal=store"; }}>Open Store</button></div>
+        ${owned.length === 0 ? html`<div class="mt-3 rounded-xl border border-dashed border-white/15 p-7 text-center text-sm text-white/55">You have no cosmetics yet. Open the Store to buy skins, effects, crowns, titles, banners, and terrain themes.</div>` : html`<div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">${catalog.filter(([key]) => owned.includes(key)).map(([key, icon, name, category]) => { const active = equipped[category] === key; return html`<button class="rounded-xl border p-4 text-left ${active ? "border-emerald-300 bg-emerald-400/10" : "border-white/10 bg-slate-950/70 hover:border-cyan-300/40"}" @click=${() => equip(key, category)}><div class="flex justify-between"><span class="text-2xl text-cyan-200">${icon}</span><span class="text-[10px] font-black uppercase tracking-wider text-white/45">${category}</span></div><div class="mt-3 font-black text-white">${name}</div><div class="mt-2 text-xs font-bold ${active ? "text-emerald-200" : "text-cyan-200"}">${active ? "EQUIPPED" : "EQUIP"}</div></button>`; })}</div>`}
+      </div>`;
     }
     // BaseModal renders the body even while closed, and this one is always
     // mounted: skip building a grid no one can see from the main menu.

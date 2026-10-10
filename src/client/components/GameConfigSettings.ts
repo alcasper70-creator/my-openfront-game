@@ -107,7 +107,7 @@ function renderSection(
   `;
 }
 
-const unitOptions: { type: UnitType; translationKey: string }[] = [
+const unitOptions: { type: UnitType; translationKey?: string; label?: string }[] = [
   { type: UnitType.City, translationKey: "unit_type.city" },
   { type: UnitType.DefensePost, translationKey: "unit_type.defense_post" },
   { type: UnitType.Port, translationKey: "unit_type.port" },
@@ -119,6 +119,11 @@ const unitOptions: { type: UnitType; translationKey: string }[] = [
   { type: UnitType.HydrogenBomb, translationKey: "unit_type.hydrogen_bomb" },
   { type: UnitType.MIRV, translationKey: "unit_type.mirv" },
   { type: UnitType.Factory, translationKey: "unit_type.factory" },
+  { type: UnitType.GoldMine, label: "Gold Mine · Operations" },
+  { type: UnitType.OilWell, label: "Oil Well · Operations" },
+  { type: UnitType.InfantryBattalion, label: "Infantry Battalion · Operations" },
+  { type: UnitType.Tank, label: "Tank Battalion · Operations" },
+  { type: UnitType.AirWing, label: "Air Wing · Operations" },
 ];
 
 const MAP_ICON = svg`<path
@@ -376,7 +381,7 @@ export class GameConfigSettings extends LitElement {
   }
 
   private renderUnitTypeOptions(disabledUnits: UnitType[]): TemplateResult[] {
-    return unitOptions.map(({ type, translationKey }) => {
+    return unitOptions.map(({ type, translationKey, label }) => {
       const isEnabled = !disabledUnits.includes(type);
       return html`
         <button
@@ -385,7 +390,7 @@ export class GameConfigSettings extends LitElement {
           @click=${() => this.handleUnitToggle(type, isEnabled)}
         >
           <span class="${CARD_LABEL_CLASS} ${stateTextClass(isEnabled)}">
-            ${translateText(translationKey)}
+            ${label ?? translateText(translationKey!)}
           </span>
         </button>
       `;
