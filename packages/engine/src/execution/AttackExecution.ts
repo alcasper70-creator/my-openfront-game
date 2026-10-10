@@ -372,7 +372,7 @@ export class AttackExecution implements Execution {
         tile,
         this.mg.config().defensePostRange(),
         UnitType.Tank,
-        (unit) => unit.owner() === this._owner,
+        ({ unit }) => unit.owner() === this._owner,
       ).map(({ unit }) => unit.level()))
       : 0;
     const attackerAirWingLevel = this.mg.config().operationsMode()
@@ -380,7 +380,7 @@ export class AttackExecution implements Execution {
         tile,
         this.mg.config().defensePostRange() * 2,
         UnitType.AirWing,
-        (unit) => unit.owner() === this._owner,
+        ({ unit }) => unit.owner() === this._owner,
       ).map(({ unit }) => unit.level()))
       : 0;
     return {
