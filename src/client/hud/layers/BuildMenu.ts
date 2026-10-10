@@ -125,6 +125,20 @@ export const buildTable: BuildItemDisplay[][] = [
       key: "Gold Mine",
       countable: true,
     },
+    {
+      unitType: UnitType.OilWell,
+      icon: goldCoinIcon,
+      description: "Operations: fuels armored battalions and earns gold every 10 seconds.",
+      key: "Oil Well",
+      countable: true,
+    },
+    {
+      unitType: UnitType.Tank,
+      icon: shieldIcon,
+      description: "Operations: requires an Oil Well. Supports nearby attacks with armored breakthrough power.",
+      key: "Tank Battalion",
+      countable: true,
+    },
   ],
 ];
 

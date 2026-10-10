@@ -15,7 +15,8 @@ export class GoldMineExecution implements Execution {
     if (!this.mine.isActive() || !this.game.config().operationsMode()) { this.active = false; return; }
     if (ticks - this.lastPaid >= 100) {
       this.lastPaid = ticks;
-      this.mine.owner().addGold(BigInt(35_000 * this.mine.level()));
+      const perTick = this.mine.type() === "Oil Well" ? 25_000 : 35_000;
+      this.mine.owner().addGold(BigInt(perTick * this.mine.level()));
     }
   }
   isActive(): boolean { return this.active; }

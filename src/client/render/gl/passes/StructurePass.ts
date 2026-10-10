@@ -20,6 +20,8 @@ import {
   UT_DEFENSE_POST,
   UT_FACTORY,
   UT_GOLD_MINE,
+  UT_OIL_WELL,
+  UT_TANK,
   UT_MISSILE_SILO,
   UT_PORT,
   UT_SAM_LAUNCHER,
@@ -145,8 +147,12 @@ export class StructurePass {
     for (let i = 0; i < header.unitTypes.length; i++) {
       // Gold Mine uses the existing factory silhouette in the first Operations
       // release; its gold-coin build icon keeps it distinguishable in UI.
-      if (header.unitTypes[i] === UT_GOLD_MINE) {
+      if (header.unitTypes[i] === UT_GOLD_MINE || header.unitTypes[i] === UT_OIL_WELL) {
         this.typeToAtlasCol.set(header.unitTypes[i], STRUCTURE_ORDER.indexOf(UT_FACTORY));
+        continue;
+      }
+      if (header.unitTypes[i] === UT_TANK) {
+        this.typeToAtlasCol.set(header.unitTypes[i], STRUCTURE_ORDER.indexOf(UT_DEFENSE_POST));
         continue;
       }
       const col = STRUCTURE_ORDER.indexOf(

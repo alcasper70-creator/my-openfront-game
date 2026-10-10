@@ -36,6 +36,7 @@ export interface AttackLogicInput {
   } | null;
   /** A defense post owned by the defender is in range of the tile. */
   defenderHasDefensePost: boolean;
+  attackerHasTank?: boolean;
   /** Fraction of land tiles with fallout, or null if the tile has no fallout. */
   falloutRatio: number | null;
   /** Tiles on the attack front this tick (plus jitter); fixed for the tick. */
@@ -131,7 +132,7 @@ export class EngineConfig extends Config {
   }
 
   override isUnitDisabled(unitType: UnitType): boolean {
-    return unitType === UnitType.GoldMine
+    return [UnitType.GoldMine, UnitType.OilWell, UnitType.Tank].includes(unitType)
       ? !this.operationsMode()
       : super.isUnitDisabled(unitType);
   }
@@ -373,6 +374,16 @@ export class EngineConfig extends Config {
           (numUnits: number) => Math.min(1_500_000, (numUnits + 1) * 200_000),
           UnitType.GoldMine,
         );
+      case UnitType.OilWell:
+        return this.costWrapper(
+          (numUnits: number) => Math.min(1_200_000, (numUnits + 1) * 175_000),
+          UnitType.OilWell,
+        );
+      case UnitType.Tank:
+        return this.costWrapper(
+          (numUnits: number) => Math.min(2_000_000, (numUnits + 1) * 300_000),
+          UnitType.Tank,
+        );
       case UnitType.TransportShip:
       case UnitType.Shell:
       case UnitType.SAMMissile:
@@ -513,6 +524,10 @@ export class EngineConfig extends Config {
   attackLogic(input: AttackLogicInput): AttackLogicResult {
     const { attackTroops, attacker, defender } = input;
     let { mag, tileCost } = terrainAttackBase(input.terrain);
+    if (input.attackerHasTank === true) {
+      mag *= 0.72;
+      tileCost *= 0.78;
+    }
 
     if (defender !== null && input.defenderHasDefensePost) {
       mag *= this.defensePostDefenseBonus();

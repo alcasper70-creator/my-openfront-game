@@ -243,6 +243,8 @@ export class Config {
       case UnitType.City:
       case UnitType.Factory:
       case UnitType.GoldMine:
+      case UnitType.OilWell:
+      case UnitType.Tank:
         info = {
           constructionDuration: this.instantBuild() ? 0 : 2 * 10,
           upgradable: true,

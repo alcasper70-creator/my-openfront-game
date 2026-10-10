@@ -19,9 +19,11 @@ const BUILDING_ORDER = {
   port: 2,
   fact: 3,
   mine: 4,
-  defp: 5,
-  silo: 6,
-  saml: 7,
+  oil: 5,
+  tank: 6,
+  defp: 7,
+  silo: 8,
+  saml: 9,
 } as const satisfies Record<
   Exclude<(typeof otherUnits)[number], "wshp">,
   number
@@ -41,6 +43,8 @@ const UNIT_LABEL_KEYS = {
   defp: "unit_type.defense_post",
   fact: "unit_type.factory",
   mine: "Gold Mine",
+  oil: "Oil Well",
+  tank: "Tank Battalion",
   port: "unit_type.port",
   saml: "unit_type.sam_launcher",
   silo: "unit_type.missile_silo",

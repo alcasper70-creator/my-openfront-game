@@ -168,6 +168,12 @@ export class ConstructionExecution implements Execution {
       case UnitType.GoldMine:
         this.mg.addExecution(new GoldMineExecution(this.structure!));
         break;
+      case UnitType.OilWell:
+        this.mg.addExecution(new GoldMineExecution(this.structure!));
+        break;
+      case UnitType.Tank:
+        this.mg.addExecution(new DefensePostExecution(this.structure!));
+        break;
       default:
         console.warn(
           `unit type ${this.constructionType} cannot be constructed`,
@@ -185,6 +191,8 @@ export class ConstructionExecution implements Execution {
       case UnitType.City:
       case UnitType.Factory:
       case UnitType.GoldMine:
+      case UnitType.OilWell:
+      case UnitType.Tank:
         return true;
       default:
         return false;
