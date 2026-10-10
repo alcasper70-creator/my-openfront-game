@@ -22,7 +22,14 @@ export async function firebaseGoogleSignIn(): Promise<FirebaseUser> {
   const { app, auth, firestore } = await getServices();
   const result = await auth.signInWithPopup(auth.getAuth(app), new auth.GoogleAuthProvider());
   const user = result.user as FirebaseUser;
-  await firestore.setDoc(firestore.doc(firestore.getFirestore(app), "leaderboard", user.uid), { name: user.displayName || "Commander", score: 0, games: 0, wins: 0 }, { merge: true });
+  // A missing Firestore database/rule must not discard a successful Google
+  // session. The account screen can still confirm sign-in while the owner
+  // finishes the leaderboard database setup.
+  try {
+    await firestore.setDoc(firestore.doc(firestore.getFirestore(app), "leaderboard", user.uid), { name: user.displayName || "Commander", score: 0, games: 0, wins: 0 }, { merge: true });
+  } catch (error) {
+    console.warn("Firebase commander profile could not be saved", error);
+  }
   return user;
 }
 export async function firebaseSignOut(): Promise<void> { const { app, auth } = await getServices(); await auth.signOut(auth.getAuth(app)); }
