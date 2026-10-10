@@ -2,6 +2,7 @@ import {
   MAX_HOSTED_LOBBIES,
   PublicGameType,
   SCHEDULED_PUBLIC_GAME_TYPES,
+  ScheduledPublicGameType,
 } from "@openfront/shared/WireSchemas";
 import { Worker } from "cluster";
 import winston from "winston";
@@ -35,7 +36,8 @@ export interface MasterLobbyServiceOptions {
  * plus the queue behind it. The whole queue is advertised, so the Detailed
  * View can show what's coming, not just the lobby about to start.
  */
-export const QUEUED_LOBBIES_PER_TYPE = 6;
+export const QUEUED_LOBBIES_PER_TYPE = 2;
+const LOBBY_REFILL_COOLDOWN_MS = 30_000;
 
 export class MasterLobbyService {
   private readonly workers = new Map<number, Worker>();
@@ -50,6 +52,10 @@ export class MasterLobbyService {
   // round-trip); losing twice means the conflict is real, and the loser gets
   // delisted.
   private readonly loserStreaks = new Map<string, number>();
+  // Last observed queue depth and a per-mode refill hold. This deliberately
+  // affects only system-scheduled lobbies, never a player's hosted lobby.
+  private readonly scheduledLobbyCounts = new Map<ScheduledPublicGameType, number>();
+  private readonly refillAfter = new Map<ScheduledPublicGameType, number>();
   private started = false;
   // False once the load balancer points at another deployment: this one only
   // finishes the games it has and stops scheduling public lobbies, so nobody
@@ -440,6 +446,13 @@ export class MasterLobbyService {
     // given a countdown or replaced by the master.
     for (const type of SCHEDULED_PUBLIC_GAME_TYPES) {
       const lobbies = lobbiesByType[type];
+      const previousCount = this.scheduledLobbyCounts.get(type) ?? 0;
+      if (lobbies.length < previousCount) {
+        // A lobby started (or was reaped). Leave the front page less crowded
+        // for a short period before adding its replacement.
+        this.refillAfter.set(type, Date.now() + LOBBY_REFILL_COOLDOWN_MS);
+      }
+      this.scheduledLobbyCounts.set(type, lobbies.length);
 
       // Always ensure the next lobby has a timer, even if the queue is
       // already full. This prevents a race where two lobbies are created before
@@ -470,7 +483,11 @@ export class MasterLobbyService {
 
       // An inactive deployment still starts what it already queued (the
       // countdown above), it just stops adding to the queue.
-      if (!this.active || lobbies.length >= QUEUED_LOBBIES_PER_TYPE) {
+      if (
+        !this.active ||
+        lobbies.length >= QUEUED_LOBBIES_PER_TYPE ||
+        Date.now() < (this.refillAfter.get(type) ?? 0)
+      ) {
         continue;
       }
 
