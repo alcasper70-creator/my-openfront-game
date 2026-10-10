@@ -1027,7 +1027,18 @@ export class AccountModal extends BaseModal {
       localStorage.setItem("firebase_commander_name", this.firebaseName);
     } catch (error) {
       console.warn("Firebase Google sign-in failed", error);
-      await showInGameAlert("Google sign-in is not enabled yet. Enable Google in Firebase Authentication and add this site's domain to Authorized domains.");
+      const firebaseError = error as { code?: unknown; message?: unknown };
+      const code =
+        typeof firebaseError.code === "string"
+          ? firebaseError.code
+          : "unknown Firebase error";
+      const message =
+        code === "auth/unauthorized-domain"
+          ? "Add my-openfront-game.onrender.com in Firebase Authentication → Settings → Authorized domains."
+          : code === "auth/operation-not-allowed"
+            ? "Enable and save Google under Firebase Authentication → Sign-in method."
+            : `Google sign-in could not finish: ${code}`;
+      await showInGameAlert(message);
     } finally {
       this.firebaseSigningIn = false;
     }
