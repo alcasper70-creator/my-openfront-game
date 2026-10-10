@@ -445,7 +445,7 @@ export class HostLobbyModal extends BaseModal {
         ? this.queued
           ? translateText("host_modal.queued_waiting")
           : this.clients.length === 1
-            ? translateText("host_modal.waiting")
+            ? "START SOLO OR WAIT FOR PLAYERS"
             : translateText("game_settings.start")
         : // A queued lobby's countdown belongs to the public queue; the host
           // can't cancel it.
@@ -645,7 +645,7 @@ export class HostLobbyModal extends BaseModal {
               >
                 ${translateText("host_modal.settings_locked_listed")}
               </div>`
-            : nothing}
+            : html`<div class="mb-6 rounded-xl border border-cyan-300/25 bg-cyan-300/5 px-4 py-3 text-sm text-cyan-100/80"><b class="text-cyan-100">Private lobby:</b> only people with your invite link can see this. Select <b class="text-white">PUBLIC</b> at the top, choose the player limit, and confirm to publish an Operations lobby in the Special list.</div>`}
           <button
             class="mb-6 w-full rounded-2xl border p-5 text-left transition ${this.operationsMode ? "border-fuchsia-300/70 bg-fuchsia-400/10" : "border-cyan-300/25 bg-cyan-300/5 hover:bg-cyan-300/10"}"
             @click=${() => this.toggleOperationsMode()}
@@ -808,8 +808,7 @@ export class HostLobbyModal extends BaseModal {
             size="lg"
             .title=${statusLabel}
             .uppercase=${secondsRemaining === null}
-            ?disable=${this.queued ||
-            (this.lobbyStartAt === null && this.clients.length < 2)}
+            ?disable=${this.queued}
             @click=${this.toggleGameStartTimer}
           ></o-button>
         </div>
