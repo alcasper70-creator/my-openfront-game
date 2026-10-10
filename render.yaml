@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: my-openfront-game
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      # The container's nginx server listens on port 80. Render can route to
+      # a configured port other than its usual 10000 default.
+      - key: PORT
+        value: "80"
+      # Dev mode permits anonymous browser players without the separate
+      # proprietary OpenFront account/API service, which is not in this repo.
+      - key: GAME_ENV
+        value: dev
+      - key: DOMAIN
+        value: localhost
+      - key: TURNSTILE_SITE_KEY
+        value: 1x00000000000000000000AA
+      - key: GIT_COMMIT
+        value: render-free
+      - key: NUM_WORKERS
+        value: "1"
+      - key: INSTANCE_LETTER
+        value: a
