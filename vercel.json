@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "static",
+  "installCommand": "npm ci --ignore-scripts",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
