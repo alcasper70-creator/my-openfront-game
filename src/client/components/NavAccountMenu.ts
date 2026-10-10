@@ -13,6 +13,7 @@ import {
 import { closeMobileSidebar } from "../Navigation";
 import { levelFraction } from "../Progression";
 import { steamSDK } from "../SteamSDK";
+import { firebaseObserveUser, type FirebaseUser } from "../Firebase";
 import { playerProfileUrl } from "../utilities/PlayerProfileUrl";
 import { copyToClipboard, showToast, translateText } from "../Utils";
 import "./LevelBadge";
@@ -51,6 +52,8 @@ export class NavAccountMenu extends LitElement {
   @state() private userMeResponse: UserMeResponse | false = false;
   // CrazyGames identities come from the SDK, not our user object.
   @state() private crazyGamesUser: CrazyGamesUser | null = null;
+  @state() private firebaseUser: FirebaseUser | null = null;
+  private stopFirebaseObserver: (() => void) | null = null;
 
   // The panel is rendered into document.body, not into the nav: the nav bar
   // owns a stacking context, so anything inside it can be painted under the
@@ -86,6 +89,10 @@ export class NavAccountMenu extends LitElement {
       // instance's freshly-rendered markup too.
       void this.updateComplete.then(() => updateAccountNavButton(cached));
     }
+    void firebaseObserveUser((user) => {
+      this.firebaseUser = user;
+      this.requestUpdate();
+    }).then((stop) => (this.stopFirebaseObserver = stop));
   }
 
   disconnectedCallback() {
@@ -98,6 +105,8 @@ export class NavAccountMenu extends LitElement {
     window.removeEventListener("showPage", this.closeMenu);
     window.removeEventListener("resize", this.closeMenu);
     this.removePanel();
+    this.stopFirebaseObserver?.();
+    this.stopFirebaseObserver = null;
     super.disconnectedCallback();
   }
 
@@ -150,6 +159,7 @@ export class NavAccountMenu extends LitElement {
    * an SDK profile whose token exchange produced a session.
    */
   private isSignedIn(): boolean {
+    if (this.firebaseUser !== null) return true;
     if (this.userMeResponse === false) return false;
     return (
       hasLinkedIdentity(this.userMeResponse.user) ||
@@ -521,12 +531,11 @@ export class NavAccountMenu extends LitElement {
         aria-label=${this.triggerLabel()}
         data-i18n-title="main.account"
       >
-        ${this.renderLevel("desktop")}
-        ${this.renderIdentityIcons({
+        ${this.firebaseUser ? html`<span class="grid h-6 w-6 place-items-center rounded-full bg-cyan-300/20 text-cyan-100">✓</span><span class="max-w-24 truncate text-xs font-bold tracking-wide">${this.firebaseUser.displayName ?? "Commander"}</span>` : html`${this.renderLevel("desktop")}${this.renderIdentityIcons({
           ids: true,
           iconClass: "w-5 h-5",
           badgeClass: "absolute bottom-1 right-1",
-        })}
+        })}`}
         <span
           id="nav-account-signin-text"
           data-account-signin-text
@@ -553,11 +562,11 @@ export class NavAccountMenu extends LitElement {
         data-i18n-title="main.account"
       >
         <span class="relative flex items-center justify-center w-8 h-8">
-          ${this.renderIdentityIcons({
+          ${this.firebaseUser ? html`<span class="grid h-7 w-7 place-items-center rounded-full bg-cyan-300/20 text-cyan-100">✓</span>` : html`${this.renderIdentityIcons({
             ids: false,
             iconClass: "w-7 h-7",
             badgeClass: "absolute -bottom-0.5 -right-0.5",
-          })}
+          })}`}
           ${this.renderLevel("mobile")}
         </span>
         <!-- The sign-in label is desktop-only; on the top bar the icon alone is

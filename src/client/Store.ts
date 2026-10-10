@@ -180,6 +180,13 @@ export class StoreModal extends BaseModal {
   }
 
   private renderHeader(): TemplateResult {
+    if (ClientEnv.env() === GameEnv.Dev) {
+      return modalHeader({
+        title: "FRONTLINE ARMORY",
+        onBack: () => this.close(),
+        ariaLabel: translateText("common.back"),
+      });
+    }
     const currency =
       this.userMeResponse === false
         ? undefined
