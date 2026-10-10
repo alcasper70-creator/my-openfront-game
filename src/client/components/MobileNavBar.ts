@@ -88,6 +88,8 @@ export class MobileNavBar extends LitElement {
           data-page="page-play"
           data-i18n="main.play"
         ></button>
+        <button class="${MOBILE_ITEM} ${currentPage === "page-item-store" ? "active" : ""}" data-page="page-item-store">Armory</button>
+        <button class="${MOBILE_ITEM} ${currentPage === "page-inventory" ? "active" : ""}" data-page="page-inventory">Loadout</button>
         <button
           class="${MOBILE_ITEM}"
           data-page="page-leaderboard"

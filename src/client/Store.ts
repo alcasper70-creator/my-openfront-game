@@ -2,6 +2,7 @@ import {
   isGrantedSubscription,
   UserMeResponse,
 } from "@openfront/shared/ApiSchemas";
+import { GameEnv } from "@openfront/shared/configuration/Env";
 import {
   CosmeticPack,
   Cosmetics,
@@ -41,6 +42,7 @@ import {
   reportPendingSteamAuthorizations,
 } from "./Payments";
 import { lastUserMeResponse } from "./UserMeBroadcast";
+import { ClientEnv } from "./ClientEnv";
 import { translateText } from "./Utils";
 
 type StoreTab =
@@ -97,6 +99,9 @@ export class StoreModal extends BaseModal {
   private readonly pages = new ProgressiveList(this);
 
   protected modalConfig() {
+    if (ClientEnv.env() === GameEnv.Dev) {
+      return { hideTabs: true, tabs: [{ key: "armory", label: "Armory" }] };
+    }
     if (this.affiliateCode) {
       // Affiliate mode: hide tabs, show only items associated with the code.
       return {};
@@ -168,6 +173,7 @@ export class StoreModal extends BaseModal {
   async onUserMe(userMeResponse: UserMeResponse | false) {
     this.userMeResponse = userMeResponse;
     this.authSettled = true;
+    if (ClientEnv.env() === GameEnv.Dev) return;
     this.cosmetics = await fetchCosmetics();
     this.selectVisible(this.groupsForTab(this.activeTab));
     await this.refresh();
@@ -179,7 +185,7 @@ export class StoreModal extends BaseModal {
         ? undefined
         : this.userMeResponse.player.currency;
     return modalHeader({
-      title: translateText("store.title"),
+      title: ClientEnv.env() === GameEnv.Dev ? "FRONTLINE ARMORY" : translateText("store.title"),
       onBack: () => this.close(),
       ariaLabel: translateText("common.back"),
       rightContent: html`<div class="flex items-center gap-4">
@@ -637,6 +643,10 @@ export class StoreModal extends BaseModal {
   }
 
   protected renderBody(key: string): TemplateResult {
+    if (ClientEnv.env() === GameEnv.Dev) {
+      const doctrine = localStorage.getItem("frontline_doctrine") ?? "none";
+      return html`<div class="p-6 max-w-4xl mx-auto text-center"><p class="text-white/60 mb-6">Choose your free battle doctrine. Paid items are not enabled.</p><div class="grid gap-4 sm:grid-cols-3">${[["⚔️","INFANTRY SURGE","Fast captures and city pushes."],["🛡️","IRON TANKS","Heavy armor for fortified borders."],["✈️","SKY RAIDERS","Air support for rapid strikes."]].map(([icon,title,description]) => html`<button class="rounded-2xl border border-cyan-300/25 bg-cyan-300/5 p-5 text-left transition hover:bg-cyan-300/10" @click=${() => { localStorage.setItem("frontline_doctrine", title); this.requestUpdate(); }}><div class="text-4xl">${icon}</div><div class="mt-3 font-black tracking-wide text-cyan-200">${title}</div><p class="mt-2 text-sm text-white/60">${description}</p></button>`)}</div><p class="mt-6 text-xs text-white/40">Selected doctrine: ${doctrine}. Gameplay bonuses come after secure server-side match scoring.</p></div>`;
+    }
     if (this.affiliateCode) {
       return this.renderAffiliateGrid();
     }
@@ -685,6 +695,10 @@ export class StoreModal extends BaseModal {
     this.requestedItem = typeof args?.item === "string" ? args.item : null;
     if (this.requestedItem !== null) {
       this.cosmeticsSubTab = subTabForItem(this.requestedItem);
+    }
+    if (ClientEnv.env() === GameEnv.Dev) {
+      await this.refresh();
+      return;
     }
     this.cosmetics ??= await fetchCosmetics();
     this.selectVisible(this.groupsForTab(this.activeTab));
