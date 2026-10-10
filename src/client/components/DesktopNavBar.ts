@@ -48,13 +48,12 @@ export class DesktopNavBar extends LitElement {
 
     return html`
       <nav
-        class="hidden lg:flex w-full bg-zinc-900/90 backdrop-blur-md items-center justify-center gap-8 py-4 shrink-0 z-50 relative"
+        class="hidden lg:flex w-full border-b border-cyan-300/15 bg-gradient-to-r from-slate-950 via-cyan-950/50 to-slate-950 backdrop-blur-md items-center justify-center gap-3 py-3 px-6 shrink-0 z-50 relative"
       >
         <div class="flex flex-col items-center justify-center">
-          <div class="h-8 flex items-center">
-            <span class="text-lg font-black tracking-[0.14em] text-cyan-300 drop-shadow-[0_0_10px_rgba(34,211,238,0.55)]">
-              FRONTLINE FRENZY
-            </span>
+          <div class="h-8 flex items-center gap-2">
+            <span class="grid h-7 w-7 place-items-center rounded-lg border border-cyan-300/50 bg-cyan-300/10 text-sm">⚡</span>
+            <span class="text-lg font-black tracking-[0.14em] text-cyan-200 drop-shadow-[0_0_10px_rgba(34,211,238,0.55)]">FRONTLINE FRENZY</span>
           </div>
           <div
             id="game-version"
@@ -64,20 +63,20 @@ export class DesktopNavBar extends LitElement {
         <button
           class="nav-menu-item ${currentPage === "page-play"
             ? "active"
-            : ""} text-white/70 hover:text-malibu-blue  font-medium tracking-wider uppercase cursor-pointer transition-colors [&.active]:text-malibu-blue "
+            : ""} rounded-lg px-3 py-2 text-white/70 hover:bg-white/5 hover:text-cyan-200 font-medium tracking-wider uppercase cursor-pointer transition-colors [&.active]:bg-cyan-300/10 [&.active]:text-cyan-200 "
           data-page="page-play"
           data-i18n="main.play"
         ></button>
         <button
-          class="nav-menu-item ${currentPage === "page-item-store" ? "active" : ""} text-white/70 hover:text-malibu-blue font-medium tracking-wider uppercase cursor-pointer transition-colors [&.active]:text-malibu-blue"
+          class="nav-menu-item ${currentPage === "page-item-store" ? "active" : ""} rounded-lg px-3 py-2 text-white/70 hover:bg-white/5 hover:text-cyan-200 font-medium tracking-wider uppercase cursor-pointer transition-colors [&.active]:bg-cyan-300/10 [&.active]:text-cyan-200"
           data-page="page-item-store"
-        >Armory</button>
+        >Armory <span class="ml-1 rounded bg-fuchsia-400/20 px-1.5 py-0.5 text-[9px] text-fuchsia-200">NEW</span></button>
         <button
-          class="nav-menu-item ${currentPage === "page-inventory" ? "active" : ""} text-white/70 hover:text-malibu-blue font-medium tracking-wider uppercase cursor-pointer transition-colors [&.active]:text-malibu-blue"
+          class="nav-menu-item ${currentPage === "page-inventory" ? "active" : ""} rounded-lg px-3 py-2 text-white/70 hover:bg-white/5 hover:text-cyan-200 font-medium tracking-wider uppercase cursor-pointer transition-colors [&.active]:bg-cyan-300/10 [&.active]:text-cyan-200"
           data-page="page-inventory"
         >Loadout</button>
         <button
-          class="nav-menu-item text-white/70 hover:text-malibu-blue  font-medium tracking-wider uppercase cursor-pointer transition-colors [&.active]:text-malibu-blue "
+          class="nav-menu-item rounded-lg px-3 py-2 text-white/70 hover:bg-white/5 hover:text-cyan-200 font-medium tracking-wider uppercase cursor-pointer transition-colors [&.active]:bg-cyan-300/10 [&.active]:text-cyan-200"
           data-page="page-leaderboard"
           data-i18n="main.leaderboard"
         ></button>

@@ -30,11 +30,11 @@ export class Footer extends LitElement {
   render() {
     return html`
       <footer
-        class="[.in-game_&]:hidden bg-zinc-900/90 backdrop-blur-md flex flex-col items-center justify-center gap-1 pt-1 pb-3 text-white/50 w-full border-t border-white/10 shrink-0 relative z-50 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-0"
+        class="[.in-game_&]:hidden bg-slate-950/95 backdrop-blur-md flex flex-col items-center justify-center gap-1 pt-2 pb-3 text-white/50 w-full border-t border-cyan-300/15 shrink-0 relative z-50 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] lg:items-center lg:gap-0"
       >
         <div class="flex w-full flex-col items-center gap-1 lg:col-start-2 lg:w-auto">
-          <div class="pt-2 text-sm font-black tracking-[0.16em] text-cyan-300">
-            FRONTLINE FRENZY
+          <div class="pt-2 text-sm font-black tracking-[0.16em] text-cyan-200">
+            ⚡ FRONTLINE FRENZY
           </div>
           <!-- The nav bar shows the game version alone so it reads the same
                across web and Steam; the full string, shell version included,
