@@ -44,6 +44,7 @@ import { crazyGamesSDK, type CrazyGamesUser } from "./CrazyGamesSDK";
 import { desktopLinkGate, isDesktopShell } from "./DesktopShell";
 import {
   firebaseGoogleSignIn,
+  firebaseIdToken,
   firebaseObserveUser,
   firebaseSignOut,
 } from "./Firebase";
@@ -89,6 +90,11 @@ export class AccountModal extends BaseModal {
   @state() private email: string = "";
   @state() private firebaseName: string | null = localStorage.getItem("firebase_commander_name");
   @state() private firebaseSigningIn = false;
+  @state() private frontlineProfile: {
+    credits: number;
+    xp: number;
+    level: number;
+  } | null = null;
   private stopFirebaseObserver: (() => void) | null = null;
 
   connectedCallback(): void {
@@ -97,8 +103,10 @@ export class AccountModal extends BaseModal {
       this.firebaseName = user?.displayName || null;
       if (this.firebaseName) {
         localStorage.setItem("firebase_commander_name", this.firebaseName);
+        void this.loadFrontlineProfile();
       } else {
         localStorage.removeItem("firebase_commander_name");
+        this.frontlineProfile = null;
       }
       this.requestUpdate();
     }).then((stop) => (this.stopFirebaseObserver = stop));
@@ -862,6 +870,7 @@ export class AccountModal extends BaseModal {
             <p class="mt-3 text-sm text-white/65">
               ${this.firebaseName ? `Signed in as ${this.firebaseName}. Your commander profile is now on the Frontline Frenzy leaderboard.` : "Frontline Frenzy is playable without an account. Sign in with Google to create a commander profile for the leaderboard."}
             </p>
+            ${this.frontlineProfile ? html`<div class="mt-5 grid grid-cols-3 gap-2 text-left"><div class="rounded-lg bg-cyan-300/10 p-3"><div class="text-[10px] uppercase text-white/45">Level</div><div class="font-black text-cyan-100">${this.frontlineProfile.level}</div></div><div class="rounded-lg bg-cyan-300/10 p-3"><div class="text-[10px] uppercase text-white/45">Credits</div><div class="font-black text-cyan-100">${this.frontlineProfile.credits}</div></div><div class="rounded-lg bg-cyan-300/10 p-3"><div class="text-[10px] uppercase text-white/45">XP</div><div class="font-black text-cyan-100">${this.frontlineProfile.xp}</div></div></div>` : nothing}
             ${this.firebaseName ? html`<button class="mt-5 rounded-lg border border-white/20 px-4 py-2 text-xs font-bold uppercase hover:bg-white/10" @click=${this.handleFirebaseLogout}>Sign out</button>` : html`<button ?disabled=${this.firebaseSigningIn} class="mt-5 rounded-lg bg-white px-4 py-2 text-xs font-bold uppercase text-slate-900 disabled:opacity-50" @click=${this.handleFirebaseGoogleLogin}>${this.firebaseSigningIn ? "Connecting…" : "Continue with Google"}</button>`}
             <p class="mt-3 text-xs text-white/40">Private-lobby access still works without an account.</p>
           </div>
@@ -1049,6 +1058,7 @@ export class AccountModal extends BaseModal {
       const user = await firebaseGoogleSignIn();
       this.firebaseName = user.displayName || "Commander";
       localStorage.setItem("firebase_commander_name", this.firebaseName);
+      await this.loadFrontlineProfile();
     } catch (error) {
       console.warn("Firebase Google sign-in failed", error);
       const firebaseError = error as { code?: unknown; message?: unknown };
@@ -1073,6 +1083,35 @@ export class AccountModal extends BaseModal {
     this.firebaseName = null;
     localStorage.removeItem("firebase_commander_name");
   };
+
+  private async loadFrontlineProfile(): Promise<void> {
+    const token = await firebaseIdToken();
+    if (!token) return;
+    try {
+      const response = await fetch("/api/progression/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) return;
+      const profile = (await response.json()) as {
+        credits?: number;
+        xp?: number;
+        level?: number;
+      };
+      if (
+        typeof profile.credits === "number" &&
+        typeof profile.xp === "number" &&
+        typeof profile.level === "number"
+      ) {
+        this.frontlineProfile = profile as {
+          credits: number;
+          xp: number;
+          level: number;
+        };
+      }
+    } catch {
+      // Gameplay and Google login remain available if progression is offline.
+    }
+  }
 
   private handleSteamLogin() {
     steamLogin();

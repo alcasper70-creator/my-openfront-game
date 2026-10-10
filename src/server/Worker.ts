@@ -35,6 +35,7 @@ import { censorPlayer } from "./Censor";
 import { Client } from "./Client";
 import { gameApiCors } from "./GameApiCors";
 import { GameManager } from "./GameManager";
+import { getFrontlineProfile } from "./FrontlineProgression";
 import { registerGamePreviewRoute } from "./GamePreviewRoute";
 import { GamePhase, type GameServer } from "./GameServer";
 import { isSteamAuthenticated, planJoinVerify, verifyJoin } from "./JoinVerify";
@@ -165,6 +166,25 @@ export async function startWorker() {
   app.use("/api", (_req, res, next) => {
     setNoStoreHeaders(res);
     next();
+  });
+
+  // Persistent Frontline Frenzy profile. This intentionally accepts Firebase
+  // ID tokens rather than a browser supplied user id, so a player cannot read
+  // or alter another commander's progression.
+  app.get("/api/progression/me", async (req, res) => {
+    const authorization = req.headers.authorization;
+    if (!authorization?.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Google sign-in required" });
+    }
+    try {
+      const profile = await getFrontlineProfile(
+        authorization.slice("Bearer ".length),
+      );
+      return res.json(profile);
+    } catch (error) {
+      log.warn(`Progression profile unavailable: ${String(error)}`);
+      return res.status(503).json({ error: "Progression temporarily unavailable" });
+    }
   });
 
   // Create a new private game. The worker mints an id that belongs to itself

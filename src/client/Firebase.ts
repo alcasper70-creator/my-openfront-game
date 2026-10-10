@@ -33,6 +33,11 @@ export async function firebaseGoogleSignIn(): Promise<FirebaseUser> {
   return user;
 }
 export async function firebaseSignOut(): Promise<void> { const { app, auth } = await getServices(); await auth.signOut(auth.getAuth(app)); }
+export async function firebaseIdToken(): Promise<string | null> {
+  const { app, auth } = await getServices();
+  const user = auth.getAuth(app).currentUser;
+  return user ? user.getIdToken() : null;
+}
 export async function firebaseObserveUser(
   listener: (user: FirebaseUser | null) => void,
 ): Promise<() => void> {
