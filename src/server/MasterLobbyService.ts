@@ -452,6 +452,20 @@ export class MasterLobbyService {
           gameID: nextLobby.gameID,
           startsAt: Date.now() + ServerEnv.gameCreationRate(),
         });
+      } else if (
+        nextLobby?.startsAt !== undefined &&
+        nextLobby.gameConfig?.maxPlayers !== undefined &&
+        nextLobby.gameConfig.maxPlayers > 0 &&
+        nextLobby.numClients >= Math.ceil(nextLobby.gameConfig.maxPlayers * 0.75) &&
+        nextLobby.startsAt > Date.now() + ServerEnv.nearFullLobbyStartDelay()
+      ) {
+        // A crowded lobby should not spend the full countdown waiting for the
+        // last few seats. Never extend a countdown; only bring it forward.
+        this.sendMessageToWorker({
+          type: "updateLobby",
+          gameID: nextLobby.gameID,
+          startsAt: Date.now() + ServerEnv.nearFullLobbyStartDelay(),
+        });
       }
 
       // An inactive deployment still starts what it already queued (the

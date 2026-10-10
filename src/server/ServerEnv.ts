@@ -137,7 +137,13 @@ export class ServerEnv {
     return 100;
   }
   static gameCreationRate(): number {
-    return ServerEnv.gameEnv === GameEnv.Dev ? 5 * 1000 : 2 * 60 * 1000;
+    // The independent public deployment also runs with GAME_ENV=dev. A
+    // five-second dev countdown is useful for automated tests, but gives real
+    // players no time to join. Use one player-facing lobby policy everywhere.
+    return 45 * 1000;
+  }
+  static nearFullLobbyStartDelay(): number {
+    return 10 * 1000;
   }
   static workerIndex(gameID: GameID): number {
     return simpleHash(gameID) % ServerEnv.numWorkers();
