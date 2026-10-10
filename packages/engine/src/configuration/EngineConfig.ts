@@ -126,6 +126,10 @@ export class EngineConfig extends Config {
     return 0.8;
   }
 
+  operationsMode(): boolean {
+    return this._gameConfig.operationsMode === true;
+  }
+
   teamLandShareWinThresholdTenths(): number {
     return 7;
   }
@@ -424,7 +428,10 @@ export class EngineConfig extends Config {
           Math.min(player.unitsOwned(type), player.unitsConstructed(type)),
         0,
       );
-      return BigInt(costFn(numUnits + extraUnits));
+      const baseCost = costFn(numUnits + extraUnits);
+      return BigInt(
+        this.operationsMode() ? Math.ceil(baseCost * 1.25) : baseCost,
+      );
     };
   }
 

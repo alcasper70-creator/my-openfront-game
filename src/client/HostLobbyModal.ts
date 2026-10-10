@@ -67,6 +67,7 @@ export class HostLobbyModal extends BaseModal {
   @state() private nations: number = 0;
   @state() private defaultNationCount: number = 0;
   @state() private gameMode: GameMode = GameMode.FFA;
+  @state() private operationsMode = false;
   @state() private teamCount: TeamCountConfig = 2;
 
   constructor() {
@@ -634,6 +635,13 @@ export class HostLobbyModal extends BaseModal {
                 ${translateText("host_modal.settings_locked_listed")}
               </div>`
             : nothing}
+          <button
+            class="mb-6 w-full rounded-2xl border p-5 text-left transition ${this.operationsMode ? "border-fuchsia-300/70 bg-fuchsia-400/10" : "border-cyan-300/25 bg-cyan-300/5 hover:bg-cyan-300/10"}"
+            @click=${() => this.toggleOperationsMode()}
+          >
+            <div class="flex items-center gap-3"><span class="rounded bg-fuchsia-400/25 px-2 py-1 text-[10px] font-black tracking-widest text-fuchsia-100">NEW</span><span class="font-black tracking-widest text-cyan-100">FRONTLINE OPERATIONS</span><span class="ml-auto text-xs font-bold ${this.operationsMode ? "text-fuchsia-200" : "text-white/45"}">${this.operationsMode ? "ENABLED" : "STANDARD MODE"}</span></div>
+            <p class="mt-2 text-sm text-white/60">Harder infrastructure rules: construction costs 25% more, so cities, factories, ports, and defenses matter.</p>
+          </button>
           <!-- Players joined a listed lobby for its advertised settings, so
                they are frozen (the server rejects changes too). -->
           <game-config-settings
@@ -1104,6 +1112,11 @@ export class HostLobbyModal extends BaseModal {
     const customEvent = e as CustomEvent<{ mode: GameMode }>;
     void this.handleGameModeSelection(customEvent.detail.mode);
   };
+
+  private toggleOperationsMode(): void {
+    this.operationsMode = !this.operationsMode;
+    this.putGameConfig();
+  }
 
   private handleConfigTeamCountSelected = (e: Event) => {
     const customEvent = e as CustomEvent<{ count: TeamCountConfig }>;
@@ -1646,6 +1659,7 @@ export class HostLobbyModal extends BaseModal {
             donateTroops: this.donateTroops,
             instantBuild: this.instantBuild,
             randomSpawn: this.randomSpawn,
+            operationsMode: this.operationsMode,
             gameMode: this.gameMode,
             disabledUnits: this.disabledUnits,
             spawnImmunityDuration: this.spawnImmunity
