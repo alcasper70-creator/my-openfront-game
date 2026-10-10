@@ -77,10 +77,6 @@ export class MobileNavBar extends LitElement {
             <span class="text-center text-xl font-black tracking-[0.12em] text-cyan-300 drop-shadow-[0_0_10px_rgba(34,211,238,0.55)]">
               FRONTLINE FRENZY
             </span>
-            <div
-              id="game-version"
-              class="l-header__highlightText text-center"
-            ></div>
           </div>
         </div>
         <button
@@ -88,7 +84,7 @@ export class MobileNavBar extends LitElement {
           data-page="page-play"
           data-i18n="main.play"
         ></button>
-        <button class="${MOBILE_ITEM} ${currentPage === "page-item-store" ? "active" : ""}" data-page="page-item-store">Armory</button>
+        <button class="${MOBILE_ITEM} ${currentPage === "page-item-store" ? "active" : ""}" data-page="page-item-store">Store</button>
         <button class="${MOBILE_ITEM} ${currentPage === "page-inventory" ? "active" : ""}" data-page="page-inventory">Loadout</button>
         <button
           class="${MOBILE_ITEM}"

@@ -67,6 +67,14 @@ export class DesktopNavBar extends LitElement {
           @click=${() => window.dispatchEvent(new CustomEvent("open-operations"))}
         >Operations <span class="ml-1 rounded bg-fuchsia-400/20 px-1.5 py-0.5 text-[9px] text-fuchsia-200">NEW</span></button>
         <button
+          class="rounded-lg px-3 py-2 text-white/70 hover:bg-white/5 hover:text-cyan-200 font-medium tracking-wider uppercase cursor-pointer transition-colors"
+          @click=${() => (window.location.hash = "modal=store")}
+        >Store</button>
+        <button
+          class="rounded-lg px-3 py-2 text-white/70 hover:bg-white/5 hover:text-cyan-200 font-medium tracking-wider uppercase cursor-pointer transition-colors"
+          @click=${() => (window.location.hash = "modal=inventory")}
+        >Loadout</button>
+        <button
           class="nav-menu-item rounded-lg px-3 py-2 text-white/70 hover:bg-white/5 hover:text-cyan-200 font-medium tracking-wider uppercase cursor-pointer transition-colors [&.active]:bg-cyan-300/10 [&.active]:text-cyan-200"
           data-page="page-leaderboard"
           data-i18n="main.leaderboard"
