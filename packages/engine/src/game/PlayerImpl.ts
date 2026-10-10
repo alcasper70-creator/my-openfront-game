@@ -1455,7 +1455,7 @@ export class PlayerImpl implements Player {
     if (this.mg.config().isUnitDisabled(unitType)) {
       return false;
     }
-    if (unitType === UnitType.Tank && this.unitCount(UnitType.OilWell) === 0) {
+    if ([UnitType.Tank, UnitType.AirWing].includes(unitType) && this.unitCount(UnitType.OilWell) === 0) {
       return false;
     }
     const cost = knownCost ?? this.mg.unitInfo(unitType).cost(this.mg, this);
@@ -1624,6 +1624,7 @@ export class PlayerImpl implements Player {
       case UnitType.GoldMine:
       case UnitType.OilWell:
       case UnitType.Tank:
+      case UnitType.AirWing:
         return this.landBasedStructureSpawn(targetTile, validTiles);
       default:
         assertNever(unitType);

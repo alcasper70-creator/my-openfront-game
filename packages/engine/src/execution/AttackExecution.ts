@@ -367,14 +367,22 @@ export class AttackExecution implements Execution {
         UnitType.DefensePost,
         defender.id(),
       );
-    const attackerHasTank =
-      this.mg.config().operationsMode() &&
-      this.mg.hasUnitNearby(
+    const attackerTankLevel = this.mg.config().operationsMode()
+      ? Math.max(0, ...this.mg.nearbyUnits(
         tile,
         this.mg.config().defensePostRange(),
         UnitType.Tank,
-        this._owner.id(),
-      );
+        (unit) => unit.owner() === this._owner,
+      ).map(({ unit }) => unit.level()))
+      : 0;
+    const attackerAirWingLevel = this.mg.config().operationsMode()
+      ? Math.max(0, ...this.mg.nearbyUnits(
+        tile,
+        this.mg.config().defensePostRange() * 2,
+        UnitType.AirWing,
+        (unit) => unit.owner() === this._owner,
+      ).map(({ unit }) => unit.level()))
+      : 0;
     return {
       terrain: this.map.terrainType(tile),
       attackTroops,
@@ -394,7 +402,8 @@ export class AttackExecution implements Execution {
                 defender.isDisconnected() && this._owner.isOnSameTeam(defender),
             },
       defenderHasDefensePost,
-      attackerHasTank,
+      ...(attackerTankLevel > 0 ? { attackerTankLevel } : {}),
+      ...(attackerAirWingLevel > 0 ? { attackerAirWingLevel } : {}),
       falloutRatio: this.mg.hasFallout(tile)
         ? this.mg.numTilesWithFallout() / this.mg.numLandTiles()
         : null,

@@ -174,6 +174,9 @@ export class ConstructionExecution implements Execution {
       case UnitType.Tank:
         this.mg.addExecution(new DefensePostExecution(this.structure!));
         break;
+      case UnitType.AirWing:
+        this.mg.addExecution(new DefensePostExecution(this.structure!));
+        break;
       default:
         console.warn(
           `unit type ${this.constructionType} cannot be constructed`,
@@ -193,6 +196,7 @@ export class ConstructionExecution implements Execution {
       case UnitType.GoldMine:
       case UnitType.OilWell:
       case UnitType.Tank:
+      case UnitType.AirWing:
         return true;
       default:
         return false;

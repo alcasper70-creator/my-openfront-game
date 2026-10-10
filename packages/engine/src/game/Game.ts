@@ -110,6 +110,8 @@ export interface UnitParamsMap {
 
   [UnitType.Tank]: Record<string, never>;
 
+  [UnitType.AirWing]: Record<string, never>;
+
   [UnitType.MissileSilo]: Record<string, never>;
 
   [UnitType.DefensePost]: Record<string, never>;

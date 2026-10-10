@@ -139,6 +139,13 @@ export const buildTable: BuildItemDisplay[][] = [
       key: "Tank Battalion",
       countable: true,
     },
+    {
+      unitType: UnitType.AirWing,
+      icon: mirvIcon,
+      description: "Operations: requires an Oil Well. Supports attacks across a wider front. Upgrade for stronger air support.",
+      key: "Air Wing",
+      countable: true,
+    },
   ],
 ];
 
