@@ -38,6 +38,7 @@ export interface AttackLogicInput {
   defenderHasDefensePost: boolean;
   attackerTankLevel?: number;
   attackerAirWingLevel?: number;
+  attackerInfantryLevel?: number;
   /** Fraction of land tiles with fallout, or null if the tile has no fallout. */
   falloutRatio: number | null;
   /** Tiles on the attack front this tick (plus jitter); fixed for the tick. */
@@ -133,7 +134,7 @@ export class EngineConfig extends Config {
   }
 
   override isUnitDisabled(unitType: UnitType): boolean {
-    return [UnitType.GoldMine, UnitType.OilWell, UnitType.Tank, UnitType.AirWing].includes(unitType)
+    return [UnitType.GoldMine, UnitType.OilWell, UnitType.Tank, UnitType.AirWing, UnitType.InfantryBattalion].includes(unitType)
       ? !this.operationsMode()
       : super.isUnitDisabled(unitType);
   }
@@ -390,6 +391,11 @@ export class EngineConfig extends Config {
           (numUnits: number) => Math.min(2_500_000, (numUnits + 1) * 450_000),
           UnitType.AirWing,
         );
+      case UnitType.InfantryBattalion:
+        return this.costWrapper(
+          (numUnits: number) => Math.min(1_400_000, (numUnits + 1) * 150_000),
+          UnitType.InfantryBattalion,
+        );
       case UnitType.TransportShip:
       case UnitType.Shell:
       case UnitType.SAMMissile:
@@ -537,6 +543,10 @@ export class EngineConfig extends Config {
     if (input.attackerAirWingLevel !== undefined) {
       mag *= Math.max(0.65, 0.88 - (input.attackerAirWingLevel - 1) * 0.04);
       tileCost *= Math.max(0.68, 0.9 - (input.attackerAirWingLevel - 1) * 0.035);
+    }
+    if (input.attackerInfantryLevel !== undefined) {
+      mag *= Math.max(0.72, 0.93 - (input.attackerInfantryLevel - 1) * 0.04);
+      tileCost *= Math.max(0.72, 0.94 - (input.attackerInfantryLevel - 1) * 0.035);
     }
 
     if (defender !== null && input.defenderHasDefensePost) {

@@ -203,6 +203,7 @@ export enum UnitType {
   OilWell = "Oil Well",
   Tank = "Tank Battalion",
   AirWing = "Air Wing",
+  InfantryBattalion = "Infantry Battalion",
 }
 
 export enum TrainType {
@@ -236,6 +237,7 @@ export const Structures = unitTypeGroup([
   UnitType.OilWell,
   UnitType.Tank,
   UnitType.AirWing,
+  UnitType.InfantryBattalion,
 ] as const);
 
 export const BuildMenus = unitTypeGroup([

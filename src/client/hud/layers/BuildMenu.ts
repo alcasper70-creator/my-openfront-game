@@ -146,6 +146,13 @@ export const buildTable: BuildItemDisplay[][] = [
       key: "Air Wing",
       countable: true,
     },
+    {
+      unitType: UnitType.InfantryBattalion,
+      icon: assetUrl("images/SoldierIcon.svg"),
+      description: "Operations: supports nearby assaults. Upgrade for faster and safer territory capture.",
+      key: "Infantry Battalion",
+      countable: true,
+    },
   ],
 ];
 

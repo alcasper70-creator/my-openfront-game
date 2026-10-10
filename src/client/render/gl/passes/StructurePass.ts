@@ -23,6 +23,7 @@ import {
   UT_OIL_WELL,
   UT_TANK,
   UT_AIR_WING,
+  UT_INFANTRY_BATTALION,
   UT_MISSILE_SILO,
   UT_PORT,
   UT_SAM_LAUNCHER,
@@ -158,6 +159,10 @@ export class StructurePass {
       }
       if (header.unitTypes[i] === UT_AIR_WING) {
         this.typeToAtlasCol.set(header.unitTypes[i], STRUCTURE_ORDER.indexOf(UT_SAM_LAUNCHER));
+        continue;
+      }
+      if (header.unitTypes[i] === UT_INFANTRY_BATTALION) {
+        this.typeToAtlasCol.set(header.unitTypes[i], STRUCTURE_ORDER.indexOf(UT_CITY));
         continue;
       }
       const col = STRUCTURE_ORDER.indexOf(

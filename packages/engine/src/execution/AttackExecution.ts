@@ -383,6 +383,14 @@ export class AttackExecution implements Execution {
         ({ unit }) => unit.owner() === this._owner,
       ).map(({ unit }) => unit.level()))
       : 0;
+    const attackerInfantryLevel = this.mg.config().operationsMode()
+      ? Math.max(0, ...this.mg.nearbyUnits(
+        tile,
+        this.mg.config().defensePostRange(),
+        UnitType.InfantryBattalion,
+        ({ unit }) => unit.owner() === this._owner,
+      ).map(({ unit }) => unit.level()))
+      : 0;
     return {
       terrain: this.map.terrainType(tile),
       attackTroops,
@@ -404,6 +412,7 @@ export class AttackExecution implements Execution {
       defenderHasDefensePost,
       ...(attackerTankLevel > 0 ? { attackerTankLevel } : {}),
       ...(attackerAirWingLevel > 0 ? { attackerAirWingLevel } : {}),
+      ...(attackerInfantryLevel > 0 ? { attackerInfantryLevel } : {}),
       falloutRatio: this.mg.hasFallout(tile)
         ? this.mg.numTilesWithFallout() / this.mg.numLandTiles()
         : null,

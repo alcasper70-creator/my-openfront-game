@@ -22,9 +22,10 @@ const BUILDING_ORDER = {
   oil: 5,
   tank: 6,
   air: 7,
-  defp: 8,
-  silo: 9,
-  saml: 10,
+  inf: 8,
+  defp: 9,
+  silo: 10,
+  saml: 11,
 } as const satisfies Record<
   Exclude<(typeof otherUnits)[number], "wshp">,
   number
@@ -47,6 +48,7 @@ const UNIT_LABEL_KEYS = {
   oil: "Oil Well",
   tank: "Tank Battalion",
   air: "Air Wing",
+  inf: "Infantry Battalion",
   port: "unit_type.port",
   saml: "unit_type.sam_launcher",
   silo: "unit_type.missile_silo",

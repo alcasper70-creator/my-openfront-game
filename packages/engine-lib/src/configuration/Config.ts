@@ -246,6 +246,7 @@ export class Config {
       case UnitType.OilWell:
       case UnitType.Tank:
       case UnitType.AirWing:
+      case UnitType.InfantryBattalion:
         info = {
           constructionDuration: this.instantBuild() ? 0 : 2 * 10,
           upgradable: true,
