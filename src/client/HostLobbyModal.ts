@@ -68,6 +68,12 @@ export class HostLobbyModal extends BaseModal {
   @state() private defaultNationCount: number = 0;
   @state() private gameMode: GameMode = GameMode.FFA;
   @state() private operationsMode = false;
+  // Opening Operations creates the lobby before a transport connection exists.
+  // Keep this one-shot flag until the first lobby_info arrives, then send the
+  // selected mode through the live transport. Without it the UI could say
+  // “enabled” while the server started a normal game and hid every Operations
+  // buildable.
+  private pendingOperationsConfigSync = false;
   @state() private teamCount: TeamCountConfig = 2;
 
   constructor() {
@@ -190,6 +196,11 @@ export class HostLobbyModal extends BaseModal {
     }
     this.autoStartAt = lobby.autoStartAt ?? null;
     this.queued = lobby.queued ?? false;
+
+    if (this.pendingOperationsConfigSync) {
+      this.pendingOperationsConfigSync = false;
+      void this.putGameConfig();
+    }
   };
 
   private getRandomString(): string {
@@ -641,6 +652,8 @@ export class HostLobbyModal extends BaseModal {
           >
             <div class="flex items-center gap-3"><span class="rounded bg-fuchsia-400/25 px-2 py-1 text-[10px] font-black tracking-widest text-fuchsia-100">NEW</span><span class="font-black tracking-widest text-cyan-100">FRONTLINE OPERATIONS</span><span class="ml-auto text-xs font-bold ${this.operationsMode ? "text-fuchsia-200" : "text-white/45"}">${this.operationsMode ? "ENABLED" : "STANDARD MODE"}</span></div>
             <p class="mt-2 text-sm text-white/60">Harder infrastructure rules: construction costs 25% more, so cities, factories, ports, and defenses matter.</p>
+            <p class="mt-3 text-xs font-semibold leading-5 text-cyan-100/80">Operations roster: Gold Mine, Oil Well, Infantry Battalion, Tank Battalion, and Air Wing. In the match, open the build menu on land you own. Tank Battalions and Air Wings require an Oil Well.</p>
+            <p class="mt-2 text-[11px] leading-4 text-white/45">Upgrade a completed Operations structure by opening its build menu again and choosing the same card.</p>
           </button>
           <!-- Players joined a listed lobby for its advertised settings, so
                they are frozen (the server rejects changes too). -->
@@ -863,6 +876,7 @@ export class HostLobbyModal extends BaseModal {
     // A dedicated Operations button opens the usual private lobby with the
     // server-authoritative ruleset already selected.
     this.operationsMode = args?.operationsMode === true;
+    this.pendingOperationsConfigSync = this.operationsMode;
     this.startLobbyUpdates();
     void getUserMe().then((userMe) => {
       // Dev skips the entitlement gate (matching the server) so the
@@ -1018,6 +1032,8 @@ export class HostLobbyModal extends BaseModal {
     this.nations = 0;
     this.defaultNationCount = 0;
     this.gameMode = GameMode.FFA;
+    this.operationsMode = false;
+    this.pendingOperationsConfigSync = false;
     this.teamCount = 2;
     this.bots = 400;
     this.spawnImmunity = false;
