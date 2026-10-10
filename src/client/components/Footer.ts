@@ -34,7 +34,7 @@ export class Footer extends LitElement {
       >
         <div class="flex w-full flex-col items-center gap-1 lg:col-start-2 lg:w-auto">
           <div class="pt-2 text-sm font-black tracking-[0.16em] text-cyan-200">
-            ⚡ FRONTLINE FRENZY
+            FRONTLINE FRENZY
           </div>
           <!-- The nav bar shows the game version alone so it reads the same
                across web and Steam; the full string, shell version included,

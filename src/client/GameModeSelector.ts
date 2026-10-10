@@ -448,6 +448,7 @@ export class GameModeSelector extends LitElement {
     );
     document.addEventListener("join-lobby", this.onJoinLobby);
     document.addEventListener("leave-lobby", this.onLeaveLobby);
+    window.addEventListener("open-operations", this.openOperationsLobby);
     // Pick up the current value in case username-input validated before us.
     const usernameInput = document.querySelector(
       "username-input",
@@ -480,6 +481,7 @@ export class GameModeSelector extends LitElement {
     );
     document.removeEventListener("join-lobby", this.onJoinLobby);
     document.removeEventListener("leave-lobby", this.onLeaveLobby);
+    window.removeEventListener("open-operations", this.openOperationsLobby);
     super.disconnectedCallback();
   }
 
@@ -704,6 +706,14 @@ export class GameModeSelector extends LitElement {
                 )}
               </div>`
             : nothing}
+          <div class="flex-1">
+            ${this.renderSmallActionCard(
+              "OPERATIONS",
+              this.openOperationsLobby,
+              "bg-fuchsia-500/15 border border-fuchsia-300/40 text-fuchsia-100 hover:bg-fuchsia-500/25",
+              "NEW",
+            )}
+          </div>
         </div>
         <div class="grid grid-cols-3 gap-4 h-14 sm:col-span-2 sm:row-start-4">
           ${this.renderSmallActionCard(
@@ -868,6 +878,16 @@ export class GameModeSelector extends LitElement {
     );
   };
 
+  private openOperationsLobby = () => {
+    if (this.blockedFromApiAction()) return;
+    if (!this.validateUsername()) return;
+    whenModalLoaded("host-lobby-modal", () =>
+      (document.querySelector("host-lobby-modal") as HostLobbyModal)?.open({
+        operationsMode: true,
+      }),
+    );
+  };
+
   private openJoinLobby = () => {
     if (this.blockedFromApiAction()) return;
     if (!this.validateUsername()) return;
@@ -943,7 +963,7 @@ export class GameModeSelector extends LitElement {
     title: string,
     onClick: () => void,
     bgClass: string = SECONDARY_ACTION,
-    badge?: number,
+    badge?: number | string,
     // Only the three multiplayer action cards (create/ranked/join) pass this;
     // the solo card is never gated (see openSinglePlayerModal) and must never
     // show as disabled here.

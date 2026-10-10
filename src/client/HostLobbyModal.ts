@@ -860,6 +860,9 @@ export class HostLobbyModal extends BaseModal {
     // modal's close() navigating via showPage, which force-closes this one —
     // can re-arm it and disconnect the host mid game-start.
     this.leaveLobbyOnClose = true;
+    // A dedicated Operations button opens the usual private lobby with the
+    // server-authoritative ruleset already selected.
+    this.operationsMode = args?.operationsMode === true;
     this.startLobbyUpdates();
     void getUserMe().then((userMe) => {
       // Dev skips the entitlement gate (matching the server) so the
