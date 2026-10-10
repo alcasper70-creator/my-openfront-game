@@ -118,6 +118,13 @@ export const buildTable: BuildItemDisplay[][] = [
       key: "unit_type.factory",
       countable: true,
     },
+    {
+      unitType: UnitType.GoldMine,
+      icon: goldCoinIcon,
+      description: "Operations: earns gold every 10 seconds. Build near your frontier and defend it.",
+      key: "Gold Mine",
+      countable: true,
+    },
   ],
 ];
 

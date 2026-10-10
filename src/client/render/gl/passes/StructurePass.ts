@@ -19,6 +19,7 @@ import {
   UT_CITY,
   UT_DEFENSE_POST,
   UT_FACTORY,
+  UT_GOLD_MINE,
   UT_MISSILE_SILO,
   UT_PORT,
   UT_SAM_LAUNCHER,
@@ -142,6 +143,12 @@ export class StructurePass {
 
     // Build unitType string → atlas column mapping
     for (let i = 0; i < header.unitTypes.length; i++) {
+      // Gold Mine uses the existing factory silhouette in the first Operations
+      // release; its gold-coin build icon keeps it distinguishable in UI.
+      if (header.unitTypes[i] === UT_GOLD_MINE) {
+        this.typeToAtlasCol.set(header.unitTypes[i], STRUCTURE_ORDER.indexOf(UT_FACTORY));
+        continue;
+      }
       const col = STRUCTURE_ORDER.indexOf(
         header.unitTypes[i] as (typeof STRUCTURE_ORDER)[number],
       );

@@ -130,6 +130,12 @@ export class EngineConfig extends Config {
     return this._gameConfig.operationsMode === true;
   }
 
+  override isUnitDisabled(unitType: UnitType): boolean {
+    return unitType === UnitType.GoldMine
+      ? !this.operationsMode()
+      : super.isUnitDisabled(unitType);
+  }
+
   teamLandShareWinThresholdTenths(): number {
     return 7;
   }
@@ -361,6 +367,11 @@ export class EngineConfig extends Config {
           (numUnits: number) => Math.min(1_000_000, pow2(numUnits) * 125_000),
           UnitType.Factory,
           UnitType.Port,
+        );
+      case UnitType.GoldMine:
+        return this.costWrapper(
+          (numUnits: number) => Math.min(1_500_000, (numUnits + 1) * 200_000),
+          UnitType.GoldMine,
         );
       case UnitType.TransportShip:
       case UnitType.Shell:

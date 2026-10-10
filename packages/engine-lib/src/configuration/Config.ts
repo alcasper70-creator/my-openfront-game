@@ -242,6 +242,7 @@ export class Config {
         break;
       case UnitType.City:
       case UnitType.Factory:
+      case UnitType.GoldMine:
         info = {
           constructionDuration: this.instantBuild() ? 0 : 2 * 10,
           upgradable: true,
