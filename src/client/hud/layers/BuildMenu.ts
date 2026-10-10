@@ -37,6 +37,10 @@ const atomBombIcon = assetUrl("images/NukeIconWhite.svg");
 const portIcon = assetUrl("images/PortIcon.svg");
 const samlauncherIcon = assetUrl("images/SamLauncherIconWhite.svg");
 const shieldIcon = assetUrl("images/ShieldIconWhite.svg");
+const goldMineIcon = assetUrl("images/GoldMineIcon.svg");
+const oilWellIcon = assetUrl("images/OilWellIcon.svg");
+const tankBattalionIcon = assetUrl("images/TankBattalionIcon.svg");
+const airWingIcon = assetUrl("images/AirWingIcon.svg");
 
 export interface BuildItemDisplay {
   unitType: PlayerBuildableUnitType;
@@ -120,28 +124,28 @@ export const buildTable: BuildItemDisplay[][] = [
     },
     {
       unitType: UnitType.GoldMine,
-      icon: goldCoinIcon,
+      icon: goldMineIcon,
       description: "Operations: earns gold every 10 seconds. Build near your frontier and defend it.",
       key: "Gold Mine",
       countable: true,
     },
     {
       unitType: UnitType.OilWell,
-      icon: goldCoinIcon,
+      icon: oilWellIcon,
       description: "Operations: fuels armored battalions and earns gold every 10 seconds.",
       key: "Oil Well",
       countable: true,
     },
     {
       unitType: UnitType.Tank,
-      icon: shieldIcon,
+      icon: tankBattalionIcon,
       description: "Operations: requires an Oil Well. Supports nearby attacks with armored breakthrough power.",
       key: "Tank Battalion",
       countable: true,
     },
     {
       unitType: UnitType.AirWing,
-      icon: mirvIcon,
+      icon: airWingIcon,
       description: "Operations: requires an Oil Well. Supports attacks across a wider front. Upgrade for stronger air support.",
       key: "Air Wing",
       countable: true,

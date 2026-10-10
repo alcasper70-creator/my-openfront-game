@@ -373,27 +373,27 @@ export class EngineConfig extends Config {
         );
       case UnitType.GoldMine:
         return this.costWrapper(
-          (numUnits: number) => Math.min(1_500_000, (numUnits + 1) * 200_000),
+          (numUnits: number) => Math.min(400_000, (numUnits + 1) * 50_000),
           UnitType.GoldMine,
         );
       case UnitType.OilWell:
         return this.costWrapper(
-          (numUnits: number) => Math.min(1_200_000, (numUnits + 1) * 175_000),
+          (numUnits: number) => Math.min(450_000, (numUnits + 1) * 60_000),
           UnitType.OilWell,
         );
       case UnitType.Tank:
         return this.costWrapper(
-          (numUnits: number) => Math.min(2_000_000, (numUnits + 1) * 300_000),
+          (numUnits: number) => Math.min(700_000, (numUnits + 1) * 100_000),
           UnitType.Tank,
         );
       case UnitType.AirWing:
         return this.costWrapper(
-          (numUnits: number) => Math.min(2_500_000, (numUnits + 1) * 450_000),
+          (numUnits: number) => Math.min(850_000, (numUnits + 1) * 150_000),
           UnitType.AirWing,
         );
       case UnitType.InfantryBattalion:
         return this.costWrapper(
-          (numUnits: number) => Math.min(1_400_000, (numUnits + 1) * 150_000),
+          (numUnits: number) => Math.min(500_000, (numUnits + 1) * 35_000),
           UnitType.InfantryBattalion,
         );
       case UnitType.TransportShip:
