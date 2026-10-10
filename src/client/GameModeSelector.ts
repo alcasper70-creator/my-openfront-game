@@ -8,6 +8,7 @@ import {
   Trios,
 } from "@openfront/engine-api/game/GameTypes";
 import { UserMeResponse } from "@openfront/shared/ApiSchemas";
+import { GameEnv } from "@openfront/shared/configuration/Env";
 import { PublicGameInfo, PublicGames } from "@openfront/shared/WireSchemas";
 import { html, LitElement, nothing, type TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
@@ -127,6 +128,12 @@ const TUTORIAL_CARD_MAX_GAMES = 5;
  * 404 for a site with no list is a reachable backend.
  */
 export function multiplayerAllowedForBackend(backendOutage: boolean): boolean {
+  // A self-hosted development server deliberately has no separate OpenFront
+  // account/cluster API. It still serves its own game HTTP and WebSocket
+  // endpoints, so private lobbies can safely fall back to that same origin.
+  // Do not lock the entire multiplayer UI just because the optional upstream
+  // coordinator is absent.
+  if (ClientEnv.env() === GameEnv.Dev) return true;
   return !backendOutage;
 }
 
