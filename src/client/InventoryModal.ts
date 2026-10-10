@@ -1,5 +1,6 @@
 import { UserMeResponse } from "@openfront/shared/ApiSchemas";
 import { assetUrl } from "@openfront/shared/AssetUrls";
+import { GameEnv } from "@openfront/shared/configuration/Env";
 import {
   Cosmetics,
   Effect,
@@ -14,6 +15,7 @@ import { customElement, state } from "lit/decorators.js";
 import Countries from "resources/countries.json" with { type: "json" };
 import { getUserMe } from "./Api";
 import { userAuth } from "./Auth";
+import { ClientEnv } from "./ClientEnv";
 import "./components/baseComponents/Button";
 import { BaseModal } from "./components/BaseModal";
 import "./components/CosmeticCard";
@@ -616,6 +618,13 @@ export class InventoryModal extends BaseModal {
   }
 
   protected renderHeaderSlot() {
+    if (ClientEnv.env() === GameEnv.Dev) {
+      return modalHeader({
+        title: "COMMANDER LOADOUT",
+        onBack: () => this.close(),
+        ariaLabel: translateText("common.back"),
+      });
+    }
     const isLoggedIn = this.userMeResponse !== false;
     return html`
       <div
@@ -669,6 +678,10 @@ export class InventoryModal extends BaseModal {
   }
 
   protected renderBody(tab: string) {
+    if (ClientEnv.env() === GameEnv.Dev) {
+      const doctrine = localStorage.getItem("frontline_doctrine") ?? "No doctrine selected";
+      return html`<div class="p-6 max-w-2xl mx-auto"><div class="rounded-2xl border border-cyan-300/25 bg-cyan-300/5 p-6 text-center"><div class="text-4xl">🎒</div><h2 class="mt-3 text-lg font-black tracking-widest text-cyan-200">ACTIVE LOADOUT</h2><p class="mt-4 text-xl font-bold text-white">${doctrine}</p><p class="mt-3 text-sm text-white/60">Your doctrine is saved on this device and ready for the next balance update. Cosmetic patterns and paid inventory are intentionally disabled while this independent edition uses free loadouts.</p><button class="mt-6 rounded-lg bg-cyan-300 px-5 py-3 text-sm font-black uppercase tracking-wide text-slate-950 hover:bg-cyan-200" @click=${() => { this.close(); window.location.hash = "modal=store"; }}>Choose doctrine</button></div><div class="mt-5 grid gap-3 sm:grid-cols-3 text-center text-sm"><div class="rounded-xl bg-white/5 p-4">⚔️<br/><b>Infantry</b><br/><span class="text-white/50">capture focus</span></div><div class="rounded-xl bg-white/5 p-4">🛡️<br/><b>Tanks</b><br/><span class="text-white/50">armor focus</span></div><div class="rounded-xl bg-white/5 p-4">✈️<br/><b>Aircraft</b><br/><span class="text-white/50">air-strike focus</span></div></div></div>`;
+    }
     // BaseModal renders the body even while closed, and this one is always
     // mounted: skip building a grid no one can see from the main menu.
     if (!this.isModalOpen) return html``;

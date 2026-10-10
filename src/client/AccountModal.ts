@@ -42,7 +42,11 @@ import { modalHeader } from "./components/ui/ModalHeader";
 import { steamGlyph, steamLinkButton } from "./components/ui/SteamLinkButton";
 import { crazyGamesSDK, type CrazyGamesUser } from "./CrazyGamesSDK";
 import { desktopLinkGate, isDesktopShell } from "./DesktopShell";
-import { firebaseGoogleSignIn, firebaseSignOut } from "./Firebase";
+import {
+  firebaseGoogleSignIn,
+  firebaseObserveUser,
+  firebaseSignOut,
+} from "./Firebase";
 import "./GameStatsModal";
 import { showInGameAlert } from "./InGameModal";
 import { consumeLinkResult } from "./LinkResult";
@@ -85,6 +89,26 @@ export class AccountModal extends BaseModal {
   @state() private email: string = "";
   @state() private firebaseName: string | null = localStorage.getItem("firebase_commander_name");
   @state() private firebaseSigningIn = false;
+  private stopFirebaseObserver: (() => void) | null = null;
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    void firebaseObserveUser((user) => {
+      this.firebaseName = user?.displayName || null;
+      if (this.firebaseName) {
+        localStorage.setItem("firebase_commander_name", this.firebaseName);
+      } else {
+        localStorage.removeItem("firebase_commander_name");
+      }
+      this.requestUpdate();
+    }).then((stop) => (this.stopFirebaseObserver = stop));
+  }
+
+  disconnectedCallback(): void {
+    this.stopFirebaseObserver?.();
+    this.stopFirebaseObserver = null;
+    super.disconnectedCallback();
+  }
   @state() private isLoadingUser: boolean = false;
   // Counts openings, to key the profile card's once-per-open flourish.
   private openCount = 0;

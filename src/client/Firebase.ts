@@ -33,6 +33,12 @@ export async function firebaseGoogleSignIn(): Promise<FirebaseUser> {
   return user;
 }
 export async function firebaseSignOut(): Promise<void> { const { app, auth } = await getServices(); await auth.signOut(auth.getAuth(app)); }
+export async function firebaseObserveUser(
+  listener: (user: FirebaseUser | null) => void,
+): Promise<() => void> {
+  const { app, auth } = await getServices();
+  return auth.onAuthStateChanged(auth.getAuth(app), (user: FirebaseUser | null) => listener(user));
+}
 export async function firebaseLeaderboard(): Promise<FirebaseLeaderboardEntry[]> {
   const { app, firestore } = await getServices();
   const snapshot = await firestore.getDocs(firestore.query(firestore.collection(firestore.getFirestore(app), "leaderboard"), firestore.orderBy("score", "desc"), firestore.limit(50)));
