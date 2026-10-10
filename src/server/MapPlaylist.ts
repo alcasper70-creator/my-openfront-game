@@ -479,6 +479,10 @@ export class MapPlaylist {
         peaceTimeDuration ??
         this.getSpawnImmunityDuration(playerTeams, startingGold),
       disabledUnits,
+      // The scheduled Special queue is Frontline Operations. This makes the
+      // server create public Operations matches automatically, using the same
+      // rotating special maps as the normal public lobby system.
+      operationsMode: true,
       waterNukes: isWaterNukes ? true : undefined,
       disableClanTags: mode === GameMode.FFA ? true : undefined,
     } satisfies GameConfig;

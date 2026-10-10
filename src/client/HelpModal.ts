@@ -1,11 +1,9 @@
 import { assetUrl } from "@openfront/shared/AssetUrls";
 import { html } from "lit";
-import { customElement, query, state } from "lit/decorators.js";
+import { customElement, state } from "lit/decorators.js";
 import {
-  DESKTOP_TUTORIAL_VIDEO_URL,
   textDirection,
   translateText,
-  TUTORIAL_VIDEO_URL,
 } from "../client/Utils";
 import { BaseModal } from "./components/BaseModal";
 import "./components/Difficulties";
@@ -19,8 +17,6 @@ export class HelpModal extends BaseModal {
   protected routerName = "help";
 
   @state() private keybinds: Record<string, string> = this.getKeybinds();
-  @query("#tutorial-video-iframe") private videoIframe?: HTMLIFrameElement;
-  @query("#tutorial-video-player") private videoPlayer?: HTMLVideoElement;
 
   private getKeybinds(): Record<string, string> {
     return new UserSettings().keybinds(Platform.isMac);
@@ -115,7 +111,7 @@ export class HelpModal extends BaseModal {
             </button>
           </section>
 
-          <!-- Video Tutorial Section -->
+          <!-- Community Section -->
           <div class="flex items-center gap-3 mb-3">
             <div class="text-blue-400">
               <svg
@@ -134,7 +130,7 @@ export class HelpModal extends BaseModal {
             <h3
               class="text-xl font-bold uppercase tracking-widest text-white/90"
             >
-              ${translateText("help_modal.video_tutorial")}
+              FRONTLINE COMMUNITY
             </h3>
             <div
               class="flex-1 h-px bg-gradient-to-r from-blue-500/50 to-transparent"
@@ -143,31 +139,11 @@ export class HelpModal extends BaseModal {
           <section
             class="bg-white/5 rounded-xl border border-white/10 overflow-hidden mb-8"
           >
-            <div class="relative w-full h-0 pb-[56.25%]">
-              ${
-                Platform.isElectron
-                  ? html`<video
-                      id="tutorial-video-player"
-                      class="absolute top-0 left-0 w-full h-full"
-                      src="${DESKTOP_TUTORIAL_VIDEO_URL}"
-                      title="${translateText(
-                        "help_modal.video_tutorial_title",
-                      )}"
-                      controls
-                      preload="metadata"
-                    ></video>`
-                  : html`<iframe
-                      id="tutorial-video-iframe"
-                      class="absolute top-0 left-0 w-full h-full"
-                      src="${this.isModalOpen ? TUTORIAL_VIDEO_URL : ""}"
-                      title="${translateText(
-                        "help_modal.video_tutorial_title",
-                      )}"
-                      frameborder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowfullscreen
-                    ></iframe>`
-              }
+            <div class="flex flex-col items-center gap-3 p-7 text-center">
+              <div class="text-4xl">◉</div>
+              <h3 class="!mt-0 !mb-0">Watch and join the community</h3>
+              <p class="!mb-1 text-sm">Streams, updates, and Frontline Operations community games.</p>
+              <a class="rounded-lg bg-violet-600 px-5 py-3 text-xs font-black uppercase tracking-widest text-white no-underline hover:bg-violet-500" href="https://www.twitch.tv/aliengangtv" target="_blank" rel="noopener noreferrer">Follow AlienGangTV on Twitch</a>
             </div>
           </section>
 
@@ -1313,19 +1289,6 @@ export class HelpModal extends BaseModal {
 
   protected onOpen(): void {
     this.keybinds = this.getKeybinds();
-    // Restore the video src when modal opens
-    if (this.videoIframe) {
-      this.videoIframe.src = TUTORIAL_VIDEO_URL;
-    }
   }
 
-  protected onClose(): void {
-    // Clear the iframe src to stop video playback
-    if (this.videoIframe) {
-      this.videoIframe.src = "";
-    }
-    // The desktop <video> keeps its src -- the file is local, so unlike the
-    // YouTube iframe there is nothing to unload; pausing is enough.
-    this.videoPlayer?.pause();
-  }
 }

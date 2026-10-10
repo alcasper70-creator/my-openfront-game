@@ -74,7 +74,12 @@ export class NewsBox extends LitElement {
         import("../Markdown"),
       ]);
       this.renderMarkdown = renderMarkdown;
-      const allItems = filterNewsByPlatform(news, clientPlatform());
+      // This independent deployment has no tournament service. Hide upstream
+      // tournament announcements rather than sending players to an event that
+      // does not exist here.
+      const allItems = filterNewsByPlatform(news, clientPlatform()).filter(
+        (item) => item.type !== "tournament",
+      );
       // Reset stale dismissed list when all items would be hidden
       const visible = getVisibleNewsItems(allItems);
       if (visible.length === 0 && allItems.length > 0) {

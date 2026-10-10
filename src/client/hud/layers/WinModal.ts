@@ -43,6 +43,25 @@ type LegendCeremonyModule = typeof import("../../components/LegendCeremony");
 // starts (see init), long before the game ends, so the reveal never waits on
 // it. Should it still be on its way, the section shows the moment it lands.
 let xpPanelModule: Promise<unknown> | null = null;
+const FIELD_CREDITS_KEY = "frontline_field_credits";
+const FIELD_CREDIT_REWARDS_KEY = "frontline_match_credit_rewards";
+
+function awardFieldCredits(gameID: string, won: boolean): void {
+  // The result update may be replayed while the end screen is open. Record
+  // the match id so each completed match pays exactly once in this browser.
+  let paid: string[] = [];
+  try {
+    const stored = JSON.parse(localStorage.getItem(FIELD_CREDIT_REWARDS_KEY) ?? "[]");
+    if (Array.isArray(stored)) paid = stored.filter((id): id is string => typeof id === "string");
+  } catch { /* start a fresh local reward record */ }
+  if (paid.includes(gameID)) return;
+  const previous = Number(localStorage.getItem(FIELD_CREDITS_KEY));
+  const reward = won ? 250 : 75;
+  localStorage.setItem(FIELD_CREDITS_KEY, String((Number.isFinite(previous) && previous >= 0 ? previous : 2500) + reward));
+  // Keep the record bounded so normal play never grows local storage forever.
+  localStorage.setItem(FIELD_CREDIT_REWARDS_KEY, JSON.stringify([...paid.slice(-199), gameID]));
+  window.dispatchEvent(new Event("frontline-catalog-changed"));
+}
 function loadGameXpPanel(): void {
   xpPanelModule ??= import("../../components/GameXpPanel").catch(
     (err: unknown) => {
@@ -670,6 +689,12 @@ export class WinModal extends LitElement implements Controller {
         this.playEndOfGameSound();
         history.replaceState(null, "", `${window.location.pathname}?replay`);
         this.show();
+      }
+      // All completed multiplayer and solo matches award Field Credits: 75
+      // for participation, 250 for a victory. Cancelled matches deliberately
+      // pay nothing. The Store reads the same browser-persistent balance.
+      if (wu.winner !== undefined) {
+        awardFieldCredits(this.game.gameID(), this.isWin);
       }
     });
   }
