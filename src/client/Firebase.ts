@@ -2,11 +2,19 @@ const config = { apiKey: "AIzaSyASeDklB5OFEoCC1dPfYkENl5ZUFGKJtJU", authDomain: 
 export type FirebaseUser = { uid: string; displayName: string | null; photoURL: string | null };
 export type FirebaseLeaderboardEntry = { id: string; name: string; score: number; games: number; wins: number };
 let services: Promise<any> | null = null;
+const FIREBASE_CDN = "https://www.gstatic.com/firebasejs/12.10.0";
+
+function loadFirebaseModule(name: string): Promise<any> {
+  // The CDN modules are deliberately runtime imports: this keeps the free
+  // self-hosted Docker build independent of an npm Firebase dependency.
+  return import(/* @vite-ignore */ `${FIREBASE_CDN}/${name}.js`);
+}
+
 async function getServices(): Promise<any> {
   services ??= Promise.all([
-    import(/* @vite-ignore */ "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js"),
-    import(/* @vite-ignore */ "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js"),
-    import(/* @vite-ignore */ "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js"),
+    loadFirebaseModule("firebase-app"),
+    loadFirebaseModule("firebase-auth"),
+    loadFirebaseModule("firebase-firestore"),
   ]).then(([app, auth, firestore]) => ({ auth, firestore, app: app.initializeApp(config) }));
   return services;
 }
