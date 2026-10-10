@@ -1,4 +1,3 @@
-import { assetUrl } from "@openfront/shared/AssetUrls";
 import { LitElement, html } from "lit";
 import { customElement } from "lit/decorators.js";
 import "./NavAccountMenu";
@@ -55,12 +54,10 @@ export class DesktopNavBar extends LitElement {
         class="hidden lg:flex w-full bg-zinc-900/90 backdrop-blur-md items-center justify-center gap-8 py-4 shrink-0 z-50 relative"
       >
         <div class="flex flex-col items-center justify-center">
-          <div class="h-8">
-            <img
-              class="block h-full aspect-[1364/259]"
-              src=${assetUrl("images/OpenFrontLogo.svg")}
-              alt="OpenFront"
-            />
+          <div class="h-8 flex items-center">
+            <span class="text-lg font-black tracking-[0.14em] text-cyan-300 drop-shadow-[0_0_10px_rgba(34,211,238,0.55)]">
+              FRONTLINE FRENZY
+            </span>
           </div>
           <div
             id="game-version"

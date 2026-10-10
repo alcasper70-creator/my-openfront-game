@@ -4,6 +4,7 @@ import {
   UserMeResponse,
 } from "@openfront/shared/ApiSchemas";
 import { assetUrl } from "@openfront/shared/AssetUrls";
+import { GameEnv } from "@openfront/shared/configuration/Env";
 import { html, nothing, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import { ClientEnv } from "src/client/ClientEnv";
@@ -821,6 +822,26 @@ export class AccountModal extends BaseModal {
   }
 
   private renderLoginOptions() {
+    // The public self-hosted build currently uses browser-local guest
+    // identities for play. The upstream Google/Discord/email backend is not
+    // deployed here, so showing OAuth buttons would only send players to a
+    // dead endpoint and make the game look broken.
+    if (ClientEnv.env() === GameEnv.Dev) {
+      return html`
+        <div class="flex items-center justify-center p-6 min-h-full">
+          <div class="w-full max-w-md bg-white/5 rounded-2xl border border-cyan-300/30 p-8 text-center">
+            <div class="text-4xl mb-4">⚡</div>
+            <h2 class="text-xl font-black tracking-wide text-cyan-200">GUEST COMMANDER</h2>
+            <p class="mt-3 text-sm text-white/65">
+              Frontline Frenzy is playable without an account. Your commander name and private-lobby access are stored in this browser.
+            </p>
+            <p class="mt-3 text-xs text-white/40">
+              Google sign-in, cloud profiles, and ranked seasons are being rebuilt for this self-hosted edition.
+            </p>
+          </div>
+        </div>
+      `;
+    }
     // On the desktop shell both provider buttons open the shell's browser
     // link flow rather than an in-place OAuth redirect (see discordLogin /
     // googleLogin in Auth.ts), and the captions say so. Keyed on the shell
