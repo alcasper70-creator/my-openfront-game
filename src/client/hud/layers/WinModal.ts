@@ -46,7 +46,11 @@ let xpPanelModule: Promise<unknown> | null = null;
 const FIELD_CREDITS_KEY = "frontline_field_credits";
 const FIELD_CREDIT_REWARDS_KEY = "frontline_match_credit_rewards";
 
-function awardFieldCredits(gameID: string, won: boolean): void {
+function awardFieldCredits(
+  gameID: string,
+  won: boolean,
+  humanPlayers: number,
+): void {
   // The result update may be replayed while the end screen is open. Record
   // the match id so each completed match pays exactly once in this browser.
   let paid: string[] = [];
@@ -56,7 +60,10 @@ function awardFieldCredits(gameID: string, won: boolean): void {
   } catch { /* start a fresh local reward record */ }
   if (paid.includes(gameID)) return;
   const previous = Number(localStorage.getItem(FIELD_CREDITS_KEY));
-  const reward = won ? 250 : 75;
+  // Solo games still have AI tribes and nations, but pay less than a match
+  // with another human so Field Credits cannot be farmed by quick bot games.
+  const solo = humanPlayers <= 1;
+  const reward = won ? (solo ? 100 : 250) : solo ? 25 : 75;
   localStorage.setItem(FIELD_CREDITS_KEY, String((Number.isFinite(previous) && previous >= 0 ? previous : 2500) + reward));
   // Keep the record bounded so normal play never grows local storage forever.
   localStorage.setItem(FIELD_CREDIT_REWARDS_KEY, JSON.stringify([...paid.slice(-199), gameID]));
@@ -694,7 +701,11 @@ export class WinModal extends LitElement implements Controller {
       // for participation, 250 for a victory. Cancelled matches deliberately
       // pay nothing. The Store reads the same browser-persistent balance.
       if (wu.winner !== undefined) {
-        awardFieldCredits(this.game.gameID(), this.isWin);
+        awardFieldCredits(
+          this.game.gameID(),
+          this.isWin,
+          Object.keys(wu.allPlayersStats).length,
+        );
       }
     });
   }
