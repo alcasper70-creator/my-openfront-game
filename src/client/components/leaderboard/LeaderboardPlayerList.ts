@@ -1,4 +1,5 @@
 import { RankedType } from "@openfront/engine-api/game/GameTypes";
+import { GameEnv } from "@openfront/shared/configuration/Env";
 import {
   PlayerLeaderboardEntry,
   RankedLeaderboardEntry,
@@ -6,6 +7,7 @@ import {
 import { html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 import { fetchPlayerLeaderboard, getUserMe } from "../../Api";
+import { ClientEnv } from "../../ClientEnv";
 import { firebaseLeaderboard } from "../../Firebase";
 import { loadModal } from "../../LazyModals";
 import { translateText } from "../../Utils";
@@ -126,27 +128,10 @@ export class LeaderboardPlayerList extends LitElement {
     try {
       const result = await fetchPlayerLeaderboard(this.currentPage);
 
-      if (result === false) {
-        // The independent deployment has no upstream ranked API. Fall back to
-        // the Firebase commander board, populated when a player signs in.
-        const cloudEntries = await firebaseLeaderboard();
-        const entries: PlayerLeaderboardEntry[] = cloudEntries.map(
-          (entry, index) => ({
-            rank: index + 1,
-            playerId: entry.id,
-            accountUsername: entry.name,
-            elo: entry.score,
-            games: entry.games,
-            wins: entry.wins,
-            losses: Math.max(0, entry.games - entry.wins),
-            winRate: entry.games > 0 ? entry.wins / entry.games : 0,
-          }),
-        );
-        this.ladders = {
-          [RankedType.OneVOne]: { entries, userEntry: null, hasMore: false },
-          [RankedType.TwoVTwo]: { entries, userEntry: null, hasMore: false },
-        };
-        this.hasLoadedPlayers = true;
+      // Frontline uses Firebase as its live commander board. Do not let the
+      // inherited upstream API hide the players that signed in here.
+      if (ClientEnv.env() === GameEnv.Dev || result === false) {
+        await this.loadFirebaseBoard();
         return;
       }
 
@@ -222,6 +207,27 @@ export class LeaderboardPlayerList extends LitElement {
         this.isLoadingMore = false;
       }
     }
+  }
+
+  private async loadFirebaseBoard(): Promise<void> {
+    const cloudEntries = await firebaseLeaderboard();
+    const entries: PlayerLeaderboardEntry[] = cloudEntries.map(
+      (entry, index) => ({
+        rank: index + 1,
+        playerId: entry.id,
+        accountUsername: entry.name,
+        elo: entry.score,
+        games: entry.games,
+        wins: entry.wins,
+        losses: Math.max(0, entry.games - entry.wins),
+        winRate: entry.games > 0 ? entry.wins / entry.games : 0,
+      }),
+    );
+    this.ladders = {
+      [RankedType.OneVOne]: { entries, userEntry: null, hasMore: false },
+      [RankedType.TwoVTwo]: { entries, userEntry: null, hasMore: false },
+    };
+    this.hasLoadedPlayers = true;
   }
 
   public handleTabActivated() {
