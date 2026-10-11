@@ -36,6 +36,7 @@ import { Client } from "./Client";
 import { gameApiCors } from "./GameApiCors";
 import { GameManager } from "./GameManager";
 import { getFrontlineProfile } from "./FrontlineProgression";
+import { createFrontlineClan, joinFrontlineClan, listFrontlineClans } from "./FrontlineClans";
 import { registerGamePreviewRoute } from "./GamePreviewRoute";
 import { GamePhase, type GameServer } from "./GameServer";
 import { isSteamAuthenticated, planJoinVerify, verifyJoin } from "./JoinVerify";
@@ -185,6 +186,23 @@ export async function startWorker() {
       log.warn(`Progression profile unavailable: ${String(error)}`);
       return res.status(503).json({ error: "Progression temporarily unavailable" });
     }
+  });
+
+  app.get("/api/frontline/clans", async (_req, res) => {
+    try { return res.json(await listFrontlineClans()); }
+    catch (error) { return res.status(503).json({ error: String(error) }); }
+  });
+  app.post("/api/frontline/clans", async (req, res) => {
+    const token = req.headers.authorization?.replace(/^Bearer\s+/, "");
+    if (!token) return res.status(401).json({ error: "Google sign-in required" });
+    try { return res.status(201).json(await createFrontlineClan(token, String(req.body?.tag ?? ""), String(req.body?.name ?? ""))); }
+    catch (error) { return res.status(400).json({ error: String(error) }); }
+  });
+  app.post("/api/frontline/clans/:id/join", async (req, res) => {
+    const token = req.headers.authorization?.replace(/^Bearer\s+/, "");
+    if (!token) return res.status(401).json({ error: "Google sign-in required" });
+    try { await joinFrontlineClan(token, req.params.id); return res.status(204).end(); }
+    catch (error) { return res.status(400).json({ error: String(error) }); }
   });
 
   // Create a new private game. The worker mints an id that belongs to itself

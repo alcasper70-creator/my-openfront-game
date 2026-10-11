@@ -33,6 +33,12 @@ export async function firebaseGoogleSignIn(): Promise<FirebaseUser> {
   return user;
 }
 export async function firebaseSignOut(): Promise<void> { const { app, auth } = await getServices(); await auth.signOut(auth.getAuth(app)); }
+export async function firebaseUpdateDisplayName(name: string): Promise<void> {
+  const { app, auth } = await getServices();
+  const user = auth.getAuth(app).currentUser;
+  if (!user) throw new Error("Google sign-in required");
+  await auth.updateProfile(user, { displayName: name });
+}
 export async function firebaseIdToken(): Promise<string | null> {
   const { app, auth } = await getServices();
   const user = auth.getAuth(app).currentUser;

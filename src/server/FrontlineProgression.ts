@@ -17,13 +17,13 @@ const ProfileSchema = z.object({
 
 export type FrontlineProfile = z.infer<typeof ProfileSchema>;
 
-function supabaseConfig(): { url: string; secret: string } | null {
+export function supabaseConfig(): { url: string; secret: string } | null {
   const url = process.env.SUPABASE_URL?.replace(/\/$/, "");
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
   return url && secret ? { url, secret } : null;
 }
 
-async function firebaseIdentity(token: string): Promise<{ uid: string; name: string }> {
+export async function firebaseIdentity(token: string): Promise<{ uid: string; name: string }> {
   const { payload } = await jwtVerify(token, firebaseKeys, {
     audience: FIREBASE_PROJECT_ID,
     issuer,
