@@ -162,9 +162,10 @@ float operationsGlyph(vec2 p, float kind) {
     return max(max(left, right), cross) * step(-0.30, p.y);
   }
   if (kind < 8.5) { // Tank: hull, turret and barrel
-    float hull = boxMask(p + vec2(0.0, 0.12), vec2(0.24, 0.09), aa);
-    float turret = boxMask(p + vec2(0.04, -0.02), vec2(0.10, 0.08), aa);
-    float barrel = boxMask(p - vec2(0.19, -0.02), vec2(0.14, 0.025), aa);
+    // Hull below turret in screen space: clear tank silhouette, not mirrored.
+    float hull = boxMask(p - vec2(0.0, 0.13), vec2(0.28, 0.10), aa);
+    float turret = boxMask(p - vec2(0.03, 0.02), vec2(0.11, 0.09), aa);
+    float barrel = boxMask(p - vec2(0.22, 0.02), vec2(0.15, 0.028), aa);
     return max(max(hull, turret), barrel);
   }
   if (kind < 9.5) { // Air wing: wings and fuselage
@@ -173,11 +174,18 @@ float operationsGlyph(vec2 p, float kind) {
     float tail = boxMask(p - vec2(0.0, -0.15), vec2(0.13, 0.025), aa);
     return max(max(body, wings), tail);
   }
-  // Infantry battalion: commander plus two squad marks.
-  float head = 1.0 - smoothstep(0.07, 0.07 + aa, length(p - vec2(0.0, -0.13)));
-  float body = boxMask(p - vec2(0.0, 0.10), vec2(0.06, 0.14), aa);
-  float squad = boxMask(p - vec2(0.0, 0.20), vec2(0.22, 0.025), aa);
-  return max(max(head, body), squad);
+  // Infantry battalion: a three-soldier squad with marching legs.
+  float march = sin(uTime * 7.0) * 0.045;
+  float soldiers = 0.0;
+  for (int i = 0; i < 3; i++) {
+    float x = (float(i) - 1.0) * 0.16;
+    float head = 1.0 - smoothstep(0.052, 0.052 + aa, length(p - vec2(x, -0.14)));
+    float body = boxMask(p - vec2(x, 0.015), vec2(0.035, 0.105), aa);
+    float leftLeg = boxMask(p - vec2(x - march, 0.17), vec2(0.022, 0.09), aa);
+    float rightLeg = boxMask(p - vec2(x + march, 0.17), vec2(0.022, 0.09), aa);
+    soldiers = max(soldiers, max(max(head, body), max(leftLeg, rightLeg)));
+  }
+  return soldiers;
 }
 
 void main() {

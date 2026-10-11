@@ -12,6 +12,7 @@ import "./components/Difficulties";
 import { GameStartAlertController } from "./components/GameStartAlertController";
 import { DEFAULT_TITLE_CLASS, modalHeader } from "./components/ui/ModalHeader";
 import { crazyGamesSDK } from "./CrazyGamesSDK";
+import { firebaseIdToken } from "./Firebase";
 import type { JoinLobbyEvent } from "./Main";
 import {
   ensureServerList,
@@ -461,6 +462,7 @@ export class MatchmakingModal extends BaseModal {
     const crazyGamesSignedIn =
       crazyGamesSDK.isOnCrazyGames() &&
       (await crazyGamesSDK.getUserProfile()) !== null;
+    const firebaseSignedIn = (await firebaseIdToken()) !== null;
     if (!this.isModalOpen) {
       return;
     }
@@ -471,8 +473,9 @@ export class MatchmakingModal extends BaseModal {
     // leaderboard read, which would dereference `false`. It also narrows the
     // type for that read.
     if (
-      userMe === false ||
-      (!responseHasLinkedIdentity(userMe) && !crazyGamesSignedIn)
+      !firebaseSignedIn &&
+      (userMe === false ||
+        (!responseHasLinkedIdentity(userMe) && !crazyGamesSignedIn))
     ) {
       window.dispatchEvent(
         new CustomEvent("show-message", {
@@ -488,12 +491,11 @@ export class MatchmakingModal extends BaseModal {
       return;
     }
 
-    const row =
-      this.mode === "2v2"
+    const row = userMe === false ? undefined : this.mode === "2v2"
         ? userMe.player.leaderboard?.twoVtwo
         : userMe.player.leaderboard?.oneVone;
     this.elo = row?.elo ?? translateText("matchmaking_modal.no_elo");
-    this.selectedClanTag = this.selectedClanFrom(userMe);
+    this.selectedClanTag = userMe === false ? null : this.selectedClanFrom(userMe);
 
     this.connected = false;
     this.gameID = null;

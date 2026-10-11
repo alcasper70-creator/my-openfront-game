@@ -27,13 +27,13 @@ import {
   resolveCosmetics,
 } from "../../Cosmetics";
 import { crazyGamesSDK } from "../../CrazyGamesSDK";
+import { firebaseRecordMatch } from "../../Firebase";
 import { isDesktopShell } from "../../DesktopShell";
 import { Platform } from "../../Platform";
 import { MAX_PRESTIGE, reachedLegendThisGame } from "../../Progression";
 import { resolveXpAccount } from "../../ProgressionAccount";
 import { fetchProgressionConfig, pollGameXp } from "../../ProgressionApi";
 import { PlaySoundEffectEvent } from "../../sound/Sounds";
-import { steamSDK } from "../../SteamSDK";
 import { SendWinnerEvent } from "../../Transport";
 import { GameView } from "../../view";
 
@@ -68,6 +68,9 @@ function awardFieldCredits(
   // Keep the record bounded so normal play never grows local storage forever.
   localStorage.setItem(FIELD_CREDIT_REWARDS_KEY, JSON.stringify([...paid.slice(-199), gameID]));
   window.dispatchEvent(new Event("frontline-catalog-changed"));
+  void firebaseRecordMatch(won).catch((error) =>
+    console.warn("Could not update Firebase commander stats", error),
+  );
   return reward;
 }
 function loadGameXpPanel(): void {
@@ -368,8 +371,7 @@ export class WinModal extends LitElement implements Controller {
     // The Steam desktop build has nothing to wishlist — fall through to the
     // other promos so the box is never empty. The Steam/OpenFront promotion
     // is intentionally absent from the compact mobile experience.
-    const isMobile = window.matchMedia("(max-width: 767px)").matches;
-    const canWishlist = !steamSDK.isOnSteam() && !isMobile;
+    const canWishlist = false;
 
     if (isInIframe()) {
       return canWishlist ? this.steamWishlist() : this.discordDisplay();
@@ -638,6 +640,9 @@ export class WinModal extends LitElement implements Controller {
     ) {
       this.hasShownDeathModal = true;
       this._title = translateText("win_modal.died");
+      // Do not make an eliminated player wait for everyone else to finish.
+      // The game-id record prevents any duplicate payment at match end.
+      this.fieldCreditReward = awardFieldCredits(this.game.gameID(), false, 1);
       this.eventBus.emit(new PlaySoundEffectEvent("defeat"));
       void this.updateXp(false);
       this.show();

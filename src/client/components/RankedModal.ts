@@ -83,12 +83,17 @@ export class RankedModal extends BaseModal {
     this.errorMessage = null;
 
     try {
+      this.firebaseSignedIn = (await firebaseIdToken()) !== null;
+    } catch {
+      this.firebaseSignedIn = false;
+    }
+
+    try {
       const userMe = await getUserMe();
       this.userMeResponse = userMe;
       this.crazyGamesSignedIn =
         crazyGamesSDK.isOnCrazyGames() &&
         (await crazyGamesSDK.getUserProfile()) !== null;
-      this.firebaseSignedIn = (await firebaseIdToken()) !== null;
     } catch (error) {
       console.warn("Failed to fetch user profile for ranked modal", error);
       this.userMeResponse = false;

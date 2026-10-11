@@ -49,3 +49,14 @@ export async function firebaseLeaderboard(): Promise<FirebaseLeaderboardEntry[]>
   const snapshot = await firestore.getDocs(firestore.query(firestore.collection(firestore.getFirestore(app), "leaderboard"), firestore.orderBy("score", "desc"), firestore.limit(50)));
   return snapshot.docs.map((row: any) => { const data = row.data(); return { id: row.id, name: String(data.name || "Commander"), score: Number(data.score || 0), games: Number(data.games || 0), wins: Number(data.wins || 0) }; });
 }
+export async function firebaseRecordMatch(won: boolean): Promise<void> {
+  const { app, auth, firestore } = await getServices();
+  const user = auth.getAuth(app).currentUser;
+  if (!user) return;
+  await firestore.setDoc(firestore.doc(firestore.getFirestore(app), "leaderboard", user.uid), {
+    name: user.displayName || "Commander",
+    games: firestore.increment(1),
+    wins: firestore.increment(won ? 1 : 0),
+    score: firestore.increment(won ? 250 : 75),
+  }, { merge: true });
+}
