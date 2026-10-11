@@ -75,8 +75,6 @@ export function accountVerifiedName(
 ): string | null {
   if (userMe === null || userMe === false) return null;
   const player = userMe.player;
-  const status = player.usernameStatus;
-  if (status !== "premium" && status !== "indefinite") return null;
   if (!player.username || isTemporaryUsername(player.usernameBase)) return null;
   if (player.username !== player.usernameBase) return null;
   return player.username;
@@ -90,8 +88,6 @@ export function accountNameHeld(
 ): boolean {
   if (userMe === null || userMe === false) return false;
   const player = userMe.player;
-  const status = player.usernameStatus;
-  if (status !== "premium" && status !== "indefinite") return false;
   if (!player.username || !player.usernameBase) return false;
   return player.username !== player.usernameBase;
 }

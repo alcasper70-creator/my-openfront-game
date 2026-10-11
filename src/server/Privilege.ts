@@ -316,15 +316,14 @@ export function resolveVerifiedJoin(
 ): "verified" | "custom" | "dev" {
   if (cosmetics.verified !== true) return "custom";
   if (account === null) return "dev";
-  const entitled =
-    account.usernameStatus === "premium" ||
-    account.usernameStatus === "indefinite";
   const bare =
     typeof account.username === "string" &&
     account.username.length > 0 &&
     account.username === account.usernameBase &&
     !isTemporaryUsername(account.usernameBase);
-  if (entitled && bare && joinUsername === account.username) {
+  // Frontline has no paid username subscription. A verified account name is
+  // available whenever the account owns its bare, non-temporary username.
+  if (bare && joinUsername === account.username) {
     return "verified";
   }
   delete cosmetics.verified;

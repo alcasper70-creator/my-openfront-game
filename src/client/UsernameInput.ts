@@ -507,17 +507,10 @@ export class UsernameInput extends LitElement {
       window.location.hash = "modal=change-username";
       return;
     }
-    const goStore = await showInGameConfirm(
-      translateText("username.verified_sub_required"),
-      {
-        heading: translateText("username.verified_heading"),
-        variant: "warning",
-        confirmText: translateText("username.verified_sub_required_confirm"),
-      },
-    );
-    if (goStore) {
-      window.location.hash = "modal=store&tab=subscriptions";
-    }
+    // Frontline does not sell a name subscription. Let the player use the
+    // ordinary username flow instead of sending them to an unavailable
+    // upstream subscription screen.
+    window.location.hash = "modal=change-username";
   }
 
   /**

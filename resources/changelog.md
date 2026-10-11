@@ -1,6 +1,26 @@
-- This is a sample changelog based off of v0.24.0.
-- This file will be replaced with real release notes during the release build process.
-  - Indented bullets look like this
+# Frontline Frenzy — Operations Update
+
+## New this release
+
+- **Frontline Operations** adds Gold Mines, Oil Wells, Infantry Battalions, Tank Battalions, and Air Wings to Operations matches.
+- **Economy:** Gold Mines produce **35k** and Oil Wells produce **25k** gold every 10 seconds per level.
+- **Combat support:** Infantry improves nearby assaults; Tanks provide armored breakthrough; Air Wings provide longer-range support. Each structure can be upgraded for stronger effects.
+- **Visual clarity:** Operations structures use distinct map symbols, with marching infantry and active tactical pulses.
+- **Field Credits:** elimination and match results now award credits, and the Store updates immediately.
+- **Google commander board:** signed-in commanders can appear with games, wins, and score on the Frontline leaderboard.
+- **Ranked access:** Frontline uses a signed-in account check instead of the inherited trusted-account lock.
+- **No Steam promotion:** removed from the post-match screen.
+- **Names:** Frontline no longer sends players to an upstream subscription screen to change their name.
+
+## Operations guide
+
+- Build an **Oil Well** first to unlock Tanks and Air Wings.
+- Build an **Infantry Battalion** close to the border you are trying to take.
+- Build a **Tank Battalion** near difficult land borders for stronger breakthrough support.
+- Build an **Air Wing** behind a wide frontline: it supports attacks at twice the normal defense-post distance.
+- Operations buildings are combat/economy support structures, not Factory rail nodes. Factories and Ports remain the structures that create the existing train/road network.
+
+---
 
 📦 **OpenFront v24 Changelog**
 

@@ -125,35 +125,35 @@ export const buildTable: BuildItemDisplay[][] = [
     {
       unitType: UnitType.GoldMine,
       icon: goldMineIcon,
-      description: "Operations: earns gold every 10 seconds. Build near your frontier and defend it.",
+      description: "OPERATIONS ECONOMY: +35k gold every 10 seconds per level. Upgrade to increase income.",
       key: "Gold Mine",
       countable: true,
     },
     {
       unitType: UnitType.OilWell,
       icon: oilWellIcon,
-      description: "Operations: fuels armored battalions and earns gold every 10 seconds.",
+      description: "OPERATIONS FUEL: +25k gold every 10 seconds per level and unlocks Tanks + Air Wings.",
       key: "Oil Well",
       countable: true,
     },
     {
       unitType: UnitType.Tank,
       icon: tankBattalionIcon,
-      description: "Operations: requires an Oil Well. Supports nearby attacks with armored breakthrough power.",
+      description: "ARMORED SUPPORT: requires Oil. Nearby assaults capture ~16% faster with ~22% lower losses at level 1.",
       key: "Tank Battalion",
       countable: true,
     },
     {
       unitType: UnitType.AirWing,
       icon: airWingIcon,
-      description: "Operations: requires an Oil Well. Supports attacks across a wider front. Upgrade for stronger air support.",
+      description: "AIR SUPPORT: requires Oil. Helps attacks from 2× normal defense range; upgrades make long pushes safer + faster.",
       key: "Air Wing",
       countable: true,
     },
     {
       unitType: UnitType.InfantryBattalion,
       icon: assetUrl("images/SoldierIcon.svg"),
-      description: "Operations: supports nearby assaults. Upgrade for faster and safer territory capture.",
+      description: "INFANTRY SUPPORT: marching squad reinforces nearby assaults. Level 1 captures ~6% faster with ~7% lower losses.",
       key: "Infantry Battalion",
       countable: true,
     },
@@ -438,6 +438,17 @@ export class BuildMenu extends LitElement implements Controller {
       this.eventBus.emit(
         new BuildUnitIntentEvent(buildableUnit.type, tile, rocketDirectionUp),
       );
+    }
+    const operationsMessage: Partial<Record<UnitType, string>> = {
+      [UnitType.GoldMine]: "Gold Mine online: +35k gold every 10 seconds per level.",
+      [UnitType.OilWell]: "Oil Well online: +25k gold every 10 seconds per level. Tanks and Air Wings unlocked.",
+      [UnitType.Tank]: "Tank Battalion deployed: armored breakthrough now supports nearby attacks.",
+      [UnitType.AirWing]: "Air Wing deployed: long-range air support now covers attacks up to twice the normal range.",
+      [UnitType.InfantryBattalion]: "Infantry Battalion deployed: marching support now reinforces nearby attacks.",
+    };
+    const message = operationsMessage[buildableUnit.type];
+    if (message) {
+      window.dispatchEvent(new CustomEvent("show-message", { detail: { message, color: "cyan", duration: 5000 } }));
     }
     this.hideMenu();
   }
