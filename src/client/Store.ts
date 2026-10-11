@@ -166,6 +166,7 @@ export class StoreModal extends BaseModal {
   connectedCallback() {
     super.connectedCallback();
     this.refreshFrontlineCatalog();
+    window.addEventListener(FRONTLINE_CATALOG_CHANGED, this.refreshFrontlineCatalog);
     document.addEventListener("userMeResponse", this.onUserMeEvent);
     // The store loads on demand, usually after Main's broadcast went out.
     const last = lastUserMeResponse();
@@ -178,7 +179,7 @@ export class StoreModal extends BaseModal {
     }
   }
 
-  private refreshFrontlineCatalog(): void {
+  private refreshFrontlineCatalog = (): void => {
     this.frontlineCredits = frontlineCredits();
     this.frontlineOwned = frontlineOwned();
   }
@@ -195,6 +196,7 @@ export class StoreModal extends BaseModal {
   }
 
   disconnectedCallback() {
+    window.removeEventListener(FRONTLINE_CATALOG_CHANGED, this.refreshFrontlineCatalog);
     document.removeEventListener("userMeResponse", this.onUserMeEvent);
     this.removeEventListener(
       "open-cosmetic-preview",

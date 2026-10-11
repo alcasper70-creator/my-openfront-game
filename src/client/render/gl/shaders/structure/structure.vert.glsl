@@ -67,6 +67,9 @@ void main() {
   float uvExpand = shapeScale / uIconFills[shapeIdx];
   float scaledX = 0.5 + (aPos.x - 0.5) * uvExpand;
   float scaledY = 0.5 + (aPos.y - 0.5) * uvExpand;
-  float colU = (aInst1.x + scaledX) / float(ATLAS_COLS);
+  // The PNG atlas contains the six original units. Operations glyphs are
+  // procedural in the fragment shader, so they never read an atlas column.
+  float atlasCols = aInst1.x < 5.5 ? float(CLASSIC_ATLAS_COLS) : float(ATLAS_COLS);
+  float colU = (aInst1.x + scaledX) / atlasCols;
   vAtlasUV = vec2(colU, scaledY);
 }

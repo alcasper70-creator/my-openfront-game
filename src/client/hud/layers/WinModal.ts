@@ -50,7 +50,7 @@ function awardFieldCredits(
   gameID: string,
   won: boolean,
   humanPlayers: number,
-): void {
+): number {
   // The result update may be replayed while the end screen is open. Record
   // the match id so each completed match pays exactly once in this browser.
   let paid: string[] = [];
@@ -58,7 +58,7 @@ function awardFieldCredits(
     const stored = JSON.parse(localStorage.getItem(FIELD_CREDIT_REWARDS_KEY) ?? "[]");
     if (Array.isArray(stored)) paid = stored.filter((id): id is string => typeof id === "string");
   } catch { /* start a fresh local reward record */ }
-  if (paid.includes(gameID)) return;
+  if (paid.includes(gameID)) return 0;
   const previous = Number(localStorage.getItem(FIELD_CREDITS_KEY));
   // Solo games still have AI tribes and nations, but pay less than a match
   // with another human so Field Credits cannot be farmed by quick bot games.
@@ -68,6 +68,7 @@ function awardFieldCredits(
   // Keep the record bounded so normal play never grows local storage forever.
   localStorage.setItem(FIELD_CREDIT_REWARDS_KEY, JSON.stringify([...paid.slice(-199), gameID]));
   window.dispatchEvent(new Event("frontline-catalog-changed"));
+  return reward;
 }
 function loadGameXpPanel(): void {
   xpPanelModule ??= import("../../components/GameXpPanel").catch(
@@ -102,6 +103,7 @@ export class WinModal extends LitElement implements Controller {
   // no progression, a spectator or a replay never see the section at all.
   @state()
   private xpView: GameXpPanelState = { kind: "hidden" };
+  @state() private fieldCreditReward = 0;
   // Polling starts once, at the end of the game.
   private xpPolling = false;
   private xpAbort: AbortController | null = null;
@@ -145,6 +147,9 @@ export class WinModal extends LitElement implements Controller {
             .gameType=${this.game?.config().gameConfig().gameType ?? null}
             @xp-legend=${this.onXpLegend}
           ></game-xp-panel>
+          ${this.fieldCreditReward > 0
+            ? html`<div class="mb-4 rounded-xl border border-amber-300/35 bg-amber-300/10 px-4 py-3 text-center text-sm font-black uppercase tracking-wider text-amber-200">+${this.fieldCreditReward} Field Credits earned</div>`
+            : null}
           ${this.innerHtml()}
         </div>
         <!-- Leaving is the quieter action, on the left; staying in the game
@@ -361,8 +366,10 @@ export class WinModal extends LitElement implements Controller {
 
   innerHtml() {
     // The Steam desktop build has nothing to wishlist — fall through to the
-    // other promos so the box is never empty.
-    const canWishlist = !steamSDK.isOnSteam();
+    // other promos so the box is never empty. The Steam/OpenFront promotion
+    // is intentionally absent from the compact mobile experience.
+    const isMobile = window.matchMedia("(max-width: 767px)").matches;
+    const canWishlist = !steamSDK.isOnSteam() && !isMobile;
 
     if (isInIframe()) {
       return canWishlist ? this.steamWishlist() : this.discordDisplay();
@@ -701,7 +708,7 @@ export class WinModal extends LitElement implements Controller {
       // for participation, 250 for a victory. Cancelled matches deliberately
       // pay nothing. The Store reads the same browser-persistent balance.
       if (wu.winner !== undefined) {
-        awardFieldCredits(
+        this.fieldCreditReward = awardFieldCredits(
           this.game.gameID(),
           this.isWin,
           Object.keys(wu.allPlayersStats).length,

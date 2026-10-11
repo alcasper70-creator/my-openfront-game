@@ -114,7 +114,8 @@ float sdPolygon(vec2 p, float R, float n, float rot) {
 }
 
 // Per-structure-type shape SDF.
-// Atlas indices: 0=City, 1=Port, 2=Factory, 3=DefensePost, 4=SAM, 5=Silo
+// Renderer indices: classic structures occupy 0-5; Operations structures
+// occupy 6-10 and carry a distinct frame plus animated glyph.
 float shapeSDF(vec2 p, float R) {
   if (vAtlasIdx < 0.5)
     return length(p) - R;                     // City → circle
@@ -126,7 +127,57 @@ float shapeSDF(vec2 p, float R) {
     return sdPolygon(p, R, 8.0, 0.0);         // Defense Post → octagon (flat top)
   if (vAtlasIdx < 4.5)
     return sdPolygon(p, R, 4.0, 0.0);         // SAM Launcher → square (flat sides)
-  return sdPolygon(p, R, 3.0, PI * 0.5);      // Missile Silo → triangle (vertex up)
+  if (vAtlasIdx < 5.5)
+    return sdPolygon(p, R, 3.0, PI * 0.5);    // Missile Silo → triangle (vertex up)
+  if (vAtlasIdx < 6.5)
+    return sdPolygon(p, R, 6.0, 0.0);         // Gold Mine → point up
+  if (vAtlasIdx < 7.5)
+    return sdPolygon(p, R, 4.0, PI * 0.25);   // Oil Well → diamond
+  if (vAtlasIdx < 8.5)
+    return sdPolygon(p, R, 8.0, PI * 0.125);  // Tank → armored frame
+  if (vAtlasIdx < 9.5)
+    return sdPolygon(p, R, 4.0, 0.0);         // Air Wing → airfield frame
+  return sdPolygon(p, R, 6.0, PI / 6.0);      // Infantry → command frame
+}
+
+float boxMask(vec2 p, vec2 halfSize, float aa) {
+  float d = max(abs(p.x) - halfSize.x, abs(p.y) - halfSize.y);
+  return 1.0 - smoothstep(-aa, aa, d);
+}
+
+// White tactical glyphs for Operations. These are procedural rather than
+// borrowed atlas art, so the map remains legible at every resolution.
+float operationsGlyph(vec2 p, float kind) {
+  float aa = fwidth(length(p)) * 1.5 + 0.004;
+  if (kind < 5.5) return 0.0;
+  if (kind < 6.5) { // Gold mine: shaft and crossed pick head
+    float shaft = boxMask(p, vec2(0.045, 0.26), aa);
+    float pick = 1.0 - smoothstep(0.035, 0.035 + aa, abs(abs(p.x) + p.y * 0.42) - 0.19);
+    return max(shaft, pick);
+  }
+  if (kind < 7.5) { // Oil well: derrick tower
+    float left = 1.0 - smoothstep(0.025, 0.025 + aa, abs(p.x + p.y * 0.38) - 0.035);
+    float right = 1.0 - smoothstep(0.025, 0.025 + aa, abs(p.x - p.y * 0.38) - 0.035);
+    float cross = boxMask(p - vec2(0.0, -0.02), vec2(0.19, 0.03), aa);
+    return max(max(left, right), cross) * step(-0.30, p.y);
+  }
+  if (kind < 8.5) { // Tank: hull, turret and barrel
+    float hull = boxMask(p + vec2(0.0, 0.12), vec2(0.24, 0.09), aa);
+    float turret = boxMask(p + vec2(0.04, -0.02), vec2(0.10, 0.08), aa);
+    float barrel = boxMask(p - vec2(0.19, -0.02), vec2(0.14, 0.025), aa);
+    return max(max(hull, turret), barrel);
+  }
+  if (kind < 9.5) { // Air wing: wings and fuselage
+    float body = boxMask(p, vec2(0.035, 0.25), aa);
+    float wings = boxMask(p + vec2(0.0, 0.01), vec2(0.25, 0.035), aa);
+    float tail = boxMask(p - vec2(0.0, -0.15), vec2(0.13, 0.025), aa);
+    return max(max(body, wings), tail);
+  }
+  // Infantry battalion: commander plus two squad marks.
+  float head = 1.0 - smoothstep(0.07, 0.07 + aa, length(p - vec2(0.0, -0.13)));
+  float body = boxMask(p - vec2(0.0, 0.10), vec2(0.06, 0.14), aa);
+  float squad = boxMask(p - vec2(0.0, 0.20), vec2(0.22, 0.025), aa);
+  return max(max(head, body), squad);
 }
 
 void main() {
@@ -195,17 +246,18 @@ void main() {
   // Only show icon detail when zoomed in enough
   float iconAlpha = 0.0;
   if (vZoom > uDotsThreshold) {
-    // Clamp UV to this atlas column to prevent bleeding into neighbours
-    // when uIconFill shrinks the icon (expanding UV range beyond column).
-    float colStart = vAtlasIdx / float(ATLAS_COLS);
-    float colEnd = (vAtlasIdx + 1.0) / float(ATLAS_COLS);
-    vec2 safeUV = vec2(clamp(vAtlasUV.x, colStart, colEnd), clamp(vAtlasUV.y, 0.0, 1.0));
-    vec4 iconSample = texture(uAtlas, safeUV);
-    // Zero out icon outside the valid UV region (clamped pixels would repeat the edge)
-    float inBounds = step(colStart, vAtlasUV.x) * step(vAtlasUV.x, colEnd)
-                   * step(0.0, vAtlasUV.y) * step(vAtlasUV.y, 1.0);
-    // Clip to fill area so icon doesn't bleed into the border ring.
-    iconAlpha = iconSample.a * borderMask * inBounds;
+    if (vAtlasIdx > 5.5) {
+      iconAlpha = operationsGlyph(vLocalPos, vAtlasIdx) * borderMask;
+    } else {
+      // Clamp UV to this atlas column to prevent bleeding into neighbours.
+      float colStart = vAtlasIdx / float(CLASSIC_ATLAS_COLS);
+      float colEnd = (vAtlasIdx + 1.0) / float(CLASSIC_ATLAS_COLS);
+      vec2 safeUV = vec2(clamp(vAtlasUV.x, colStart, colEnd), clamp(vAtlasUV.y, 0.0, 1.0));
+      vec4 iconSample = texture(uAtlas, safeUV);
+      float inBounds = step(colStart, vAtlasUV.x) * step(vAtlasUV.x, colEnd)
+                     * step(0.0, vAtlasUV.y) * step(vAtlasUV.y, 1.0);
+      iconAlpha = iconSample.a * borderMask * inBounds;
+    }
   }
 
   // Composite: tinted icon over player-colored shape.
@@ -229,6 +281,14 @@ void main() {
     }
   }
   vec3 finalRGB = mix(bgColor.rgb, glyphColor, iconAlpha);
+
+  // A restrained tactical pulse lets Operations structures read as active
+  // infrastructure rather than inert decorations.
+  if (vAtlasIdx > 5.5 && vZoom > uDotsThreshold) {
+    float wave = 0.5 + 0.5 * sin(uTime * 3.0 + vAtlasIdx * 1.7);
+    float ring = smoothstep(0.47, 0.38, abs(length(vLocalPos) - 0.39));
+    finalRGB = mix(finalRGB, vec3(0.45, 0.95, 1.0), ring * wave * 0.35);
+  }
 
   // Red X overlay for units marked for deletion
   if (vMarkedForDeletion > 0.5) {

@@ -2,7 +2,8 @@
  * StructurePass — GPU-rendered structures with icon sprites.
  *
  * Renders a filled circle in player color with a white icon overlay,
- * sampled from a pre-built 6-column sprite atlas (generate-sprite-atlases.mjs).
+ * sampled from the classic sprite atlas or drawn as a purpose-built Operations
+ * glyph for the extended structure roster.
  *
  * Two LODs based on zoom:
  *   - zoom > 0.5: full icon with circle background
@@ -58,6 +59,13 @@ const STRUCTURE_ORDER = [
   UT_DEFENSE_POST,
   UT_SAM_LAUNCHER,
   UT_MISSILE_SILO,
+  // Operations structures deliberately get their own renderer slots.  They
+  // must never fall back to City/Factory/SAM silhouettes on the map.
+  UT_GOLD_MINE,
+  UT_OIL_WELL,
+  UT_TANK,
+  UT_AIR_WING,
+  UT_INFANTRY_BATTALION,
 ] as const;
 
 const ATLAS_COLS = STRUCTURE_ORDER.length;
@@ -120,7 +128,7 @@ export class StructurePass {
 
   private instanceCount = 0;
 
-  /** unitType string → atlas column index (0–5) */
+  /** unitType string → renderer glyph index */
   private typeToAtlasCol = new Map<string, number>();
   private mapW: number;
 
@@ -147,24 +155,6 @@ export class StructurePass {
 
     // Build unitType string → atlas column mapping
     for (let i = 0; i < header.unitTypes.length; i++) {
-      // Gold Mine uses the existing factory silhouette in the first Operations
-      // release; its gold-coin build icon keeps it distinguishable in UI.
-      if (header.unitTypes[i] === UT_GOLD_MINE || header.unitTypes[i] === UT_OIL_WELL) {
-        this.typeToAtlasCol.set(header.unitTypes[i], STRUCTURE_ORDER.indexOf(UT_FACTORY));
-        continue;
-      }
-      if (header.unitTypes[i] === UT_TANK) {
-        this.typeToAtlasCol.set(header.unitTypes[i], STRUCTURE_ORDER.indexOf(UT_DEFENSE_POST));
-        continue;
-      }
-      if (header.unitTypes[i] === UT_AIR_WING) {
-        this.typeToAtlasCol.set(header.unitTypes[i], STRUCTURE_ORDER.indexOf(UT_SAM_LAUNCHER));
-        continue;
-      }
-      if (header.unitTypes[i] === UT_INFANTRY_BATTALION) {
-        this.typeToAtlasCol.set(header.unitTypes[i], STRUCTURE_ORDER.indexOf(UT_CITY));
-        continue;
-      }
       const col = STRUCTURE_ORDER.indexOf(
         header.unitTypes[i] as (typeof STRUCTURE_ORDER)[number],
       );
@@ -176,10 +166,11 @@ export class StructurePass {
     // Compile shaders
     this.program = createProgram(
       gl,
-      shaderSrc(structureVertSrc, { ATLAS_COLS }),
+      shaderSrc(structureVertSrc, { ATLAS_COLS, CLASSIC_ATLAS_COLS: 6 }),
       shaderSrc(structureFragSrc, {
         PALETTE_SIZE: getPaletteSize(),
         ATLAS_COLS,
+        CLASSIC_ATLAS_COLS: 6,
         // First row of the structures block in the shared effect palette.
         STRUCT_EFFECT_ROW_BASE: STRUCTURES_EFFECT_BLOCK * MAX_TRAIL_COLORS,
       }),
